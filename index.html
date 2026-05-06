@@ -889,6 +889,9 @@ const API_BASE = 'https://api.jsonbin.io/v3/b';
 const API_KEY = '$2a$10$2mX558aCXaBUL7/hexaKfOgCqyp/..eBBfmIaVFBWCfY/E5RCzEre';
 let roomId = null;
 let pollTimer = null;
+let pushTimer = null;       // デバウンス用：1秒入力が止まったら自動でクラウドにpush
+let isPushing = false;      // push中フラグ（push中はポーリングを止める）
+let lastLocalEdit = 0;      // 最後のローカル編集時刻
 
 function getRoomIdFromHash() {
   const m = location.hash.match(/room=([a-zA-Z0-9_-]+)/);
@@ -965,8 +968,9 @@ async function fetchRoom(silent = false) {
   }
 }
 
-async function pushRoom() {
+async function pushRoom(showToastFlag = true) {
   if (!roomId) return;
+  isPushing = true;
   setSyncStatus('syncing', '保存中...');
   try {
     const res = await fetch(API_BASE + '/' + roomId, {
@@ -979,18 +983,40 @@ async function pushRoom() {
     });
     if (!res.ok) throw new Error('push failed: ' + res.status);
     setSyncStatus('ok', '共有中');
-    showToast('保存しました', 'success');
+    if (showToastFlag) showToast('保存しました', 'success');
   } catch (e) {
     console.error(e);
     setSyncStatus('err', '保存エラー');
-    showToast('クラウド保存に失敗（ローカルには保存）', 'error');
+    if (showToastFlag) showToast('クラウド保存に失敗（ローカルには保存）', 'error');
+  } finally {
+    isPushing = false;
   }
   saveLocal();
 }
 
+/* デバウンスpush：入力が止まってから1秒後に自動push */
+function debouncedPush() {
+  lastLocalEdit = Date.now();
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => {
+    pushTimer = null;
+    pushRoom(false); // トースト通知なしで静かに保存
+  }, 1000);
+}
+
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(() => fetchRoom(true), 5000);
+  pollTimer = setInterval(() => {
+    // 入力中・push待ち・push中はポーリングをスキップ（入力消失防止）
+    const active = document.activeElement;
+    const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
+    if (isTyping) return;
+    if (pushTimer) return;
+    if (isPushing) return;
+    // 直近2秒以内に編集があった場合もスキップ
+    if (Date.now() - lastLocalEdit < 2000) return;
+    fetchRoom(true);
+  }, 5000);
 }
 
 function saveLocal() {
@@ -1410,6 +1436,7 @@ function onInputChange(el) {
   const val = Math.max(0, Number(el.value) || 0);
   state[acc].values[key] = val;
   saveLocal();
+  debouncedPush(); // 1秒後に自動でクラウドに保存
   const card = el.closest('.input-card');
   const cat = DEFAULT_CATEGORIES.find(c => c.inputs.some(i => i.key === key));
   if (cat && card) {
@@ -1427,6 +1454,7 @@ function onTargetChange(el) {
   if (!val || val < 1) val = 1;
   state.targets[key] = val;
   saveLocal();
+  debouncedPush();
   // ダッシュボード・入力ページのスコアも更新
   renderDashboard();
   renderInput('acc1');
@@ -1445,6 +1473,7 @@ function resetTargetsToDefault() {
 function onAccountNameChange(accKey, val) {
   state.names[accKey] = val || (accKey === 'acc1' ? 'アカウント1' : 'アカウント2');
   saveLocal();
+  debouncedPush();
   renderNames();
   renderDashboard();
 }
