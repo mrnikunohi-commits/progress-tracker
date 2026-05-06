@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>業績給 進捗トラッカー（2アカウント・履歴・設定対応）</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #2c3e50;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: #fff;
+    padding: 24px 40px;
+    text-align: center;
+  }
+  .header h1 { font-size: 26px; margin-bottom: 6px; letter-spacing: 1px; }
+  .header p { font-size: 13px; opacity: 0.9; }
+
+  /* 共有バー */
+  .share-bar {
+    background: #2c3e50;
+    color: #fff;
+    padding: 10px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .share-bar .room {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 11px;
+  }
+  .share-bar button {
+    background: #38ef7d;
+    color: #1e3c72;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .share-bar button:hover { transform: translateY(-1px); background: #11998e; color: #fff; }
+  .sync-status { display: flex; align-items: center; gap: 6px; }
+  .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #95a5a6; }
+  .sync-dot.ok { background: #38ef7d; box-shadow: 0 0 8px #38ef7d; }
+  .sync-dot.err { background: #f12711; }
+  .sync-dot.syncing { background: #f5af19; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* タブ */
+  .tabs {
+    display: flex;
+    background: #f8f9fc;
+    border-bottom: 2px solid #e3e8f0;
+    overflow-x: auto;
+  }
+  .tab {
+    flex: 1;
+    min-width: 130px;
+    padding: 14px 14px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: 600;
+    color: #7f8c9b;
+    font-size: 13px;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    background: #fff;
+  }
+  .tab:hover:not(.active) { background: #eef1f7; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* サマリー */
+  .summary {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 20px;
+    padding: 30px 40px;
+    background: #f8f9fc;
+    border-bottom: 2px solid #e3e8f0;
+  }
+  .summary-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .summary-card .label {
+    font-size: 12px; color: #7f8c9b;
+    margin-bottom: 8px; letter-spacing: 1px;
+  }
+  .summary-card .value { font-size: 32px; font-weight: 700; color: #2c3e50; }
+  .summary-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
+  .total-bar-container {
+    margin-top: 14px; height: 18px;
+    background: #e3e8f0; border-radius: 9px;
+    overflow: hidden; position: relative;
+  }
+  .total-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #11998e, #38ef7d);
+    border-radius: 9px; width: 0%;
+    transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    box-shadow: 0 0 10px rgba(56, 239, 125, 0.5);
+  }
+  .rank-badge {
+    display: inline-block;
+    font-size: 52px; font-weight: 900; line-height: 1;
+    padding: 6px 20px; border-radius: 14px; color: #fff;
+  }
+  .rank-S { background: linear-gradient(135deg, #f5af19, #f12711); }
+  .rank-A { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .rank-B { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+  .rank-C { background: linear-gradient(135deg, #f7971e, #ffd200); color: #5a4500;}
+  .rank-D { background: linear-gradient(135deg, #757F9A, #D7DDE8); color: #2c3e50;}
+  .salary-box { display: flex; align-items: baseline; gap: 6px; justify-content: center; }
+  .salary-box .yen { font-size: 18px; font-weight: 600; color: #7f8c9b; }
+  .salary-box .amount { font-size: 36px; font-weight: 900; color: #11998e; }
+
+  /* カテゴリ */
+  .categories { padding: 30px 40px; }
+  .category {
+    margin-bottom: 22px;
+    padding: 16px 18px;
+    background: #fff;
+    border: 2px solid #eef1f7;
+    border-radius: 14px;
+  }
+  .cat-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 10px;
+  }
+  .cat-title {
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cat-title .icon {
+    width: 32px; height: 32px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; font-weight: 700;
+  }
+  .cat-points {
+    font-size: 13px; font-weight: 600; color: #7f8c9b;
+    background: #f8f9fc; padding: 4px 12px; border-radius: 20px;
+  }
+  .cat-points .current { color: #2c3e50; font-size: 15px; }
+  .progress-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .progress-bar {
+    flex: 1; height: 26px;
+    background: #eef1f7; border-radius: 13px;
+    overflow: hidden; position: relative;
+  }
+  .progress-fill {
+    height: 100%; border-radius: 13px;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+    position: relative; overflow: hidden;
+  }
+  .progress-fill::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shine 2.5s infinite;
+  }
+  @keyframes shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .progress-percent {
+    min-width: 56px; text-align: right;
+    font-size: 16px; font-weight: 700; color: #2c3e50;
+  }
+  .cat-detail { font-size: 11px; color: #95a5a6; margin-top: 4px; }
+  .cat-breakdown {
+    font-size: 11px; color: #667eea;
+    margin-top: 6px;
+    background: #f8f9fc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .cat-breakdown b { color: #2c3e50; }
+
+  /* 入力ページ */
+  .input-section { padding: 24px 40px; }
+  .account-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .account-header .title-area { display: flex; align-items: center; gap: 12px; }
+  .account-header .acc-icon {
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+  }
+  .account-header input.acc-name {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 16px; font-weight: 700;
+    width: 220px;
+  }
+  .account-header input.acc-name::placeholder { color: rgba(255,255,255,0.6); }
+  .account-header .acc-score {
+    font-size: 13px;
+    background: rgba(255,255,255,0.15);
+    padding: 6px 14px; border-radius: 20px;
+    font-weight: 600;
+  }
+  .input-intro {
+    background: linear-gradient(135deg, #667eea22, #764ba222);
+    border-left: 4px solid #667eea;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #2c3e50;
+    line-height: 1.6;
+  }
+  .input-card {
+    background: #fff;
+    border: 2px solid #eef1f7;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+  }
+  .input-card:focus-within { border-color: #667eea; }
+  .input-card-header {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 8px;
+  }
+  .input-card-title {
+    font-size: 14px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .input-card-title .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #fff; font-size: 14px; font-weight: 700;
+  }
+  .input-row {
+    display: flex; gap: 10px; align-items: center;
+    margin-top: 8px; flex-wrap: wrap;
+    padding: 6px 0;
+    border-bottom: 1px dashed #eef1f7;
+  }
+  .input-row:last-child { border-bottom: none; }
+  .input-row label {
+    flex: 0 0 auto;
+    font-size: 13px; color: #2c3e50; font-weight: 500;
+    min-width: 160px;
+  }
+  .input-row input[type="number"] {
+    width: 100px;
+    padding: 7px 10px;
+    border: 1.5px solid #e3e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: right;
+    font-weight: 600;
+  }
+  .input-row input[type="number"]:focus {
+    outline: none; border-color: #667eea;
+    box-shadow: 0 0 0 3px #667eea33;
+  }
+  .input-row .unit { font-size: 12px; color: #7f8c9b; }
+  .input-row .target {
+    font-size: 11px; color: #95a5a6;
+    background: #f8f9fc; padding: 3px 9px; border-radius: 12px;
+  }
+
+  /* アーカイブページ */
+  .archive-section { padding: 24px 40px; }
+  .archive-controls {
+    background: linear-gradient(135deg, #f5af19, #f12711);
+    color: #fff;
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .archive-controls .text { font-size: 13px; line-height: 1.6; }
+  .archive-controls button {
+    background: #fff;
+    color: #f12711;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .archive-controls button:hover { transform: translateY(-1px); }
+  .archive-list {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .archive-card {
+    background: #fff;
+    border: 2px solid #eef1f7;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+  .archive-card:hover { border-color: #667eea; }
+  .archive-card .ar-month {
+    font-size: 18px; font-weight: 700; color: #2c3e50;
+  }
+  .archive-card .ar-month-sub {
+    font-size: 11px; color: #95a5a6; font-weight: 400;
+    margin-top: 2px;
+  }
+  .archive-card .ar-item {
+    text-align: center;
+  }
+  .archive-card .ar-item .lbl {
+    font-size: 10px; color: #7f8c9b; letter-spacing: 1px;
+  }
+  .archive-card .ar-item .val {
+    font-size: 18px; font-weight: 700; color: #2c3e50;
+    margin-top: 2px;
+  }
+  .archive-card .ar-rank {
+    font-size: 28px; font-weight: 900;
+    padding: 4px 14px; border-radius: 10px;
+  }
+  .archive-card .ar-actions { display: flex; gap: 6px; }
+  .archive-card .ar-actions button {
+    background: #f8f9fc;
+    color: #667eea;
+    border: 1.5px solid #e3e8f0;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .archive-card .ar-actions button.danger {
+    color: #f12711;
+    border-color: #ffd5d0;
+  }
+  .archive-card .ar-actions button:hover { background: #eef1f7; }
+  .archive-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #95a5a6;
+    font-size: 14px;
+    background: #f8f9fc;
+    border-radius: 14px;
+    border: 2px dashed #e3e8f0;
+  }
+
+  /* 設定ページ */
+  .settings-section { padding: 24px 40px; }
+  .settings-intro {
+    background: linear-gradient(135deg, #2193b022, #6dd5ed22);
+    border-left: 4px solid #2193b0;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .settings-card {
+    background: #fff;
+    border: 2px solid #eef1f7;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .settings-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed #eef1f7;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row label {
+    flex: 1;
+    font-size: 13px;
+    color: #2c3e50;
+  }
+  .settings-row .default {
+    font-size: 11px;
+    color: #95a5a6;
+  }
+  .settings-row input[type="number"] {
+    width: 90px;
+    padding: 6px 10px;
+    border: 1.5px solid #e3e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: right;
+  }
+  .settings-row input[type="number"]:focus {
+    outline: none; border-color: #2193b0;
+    box-shadow: 0 0 0 3px #2193b033;
+  }
+  .settings-row .unit { font-size: 12px; color: #7f8c9b; min-width: 30px; }
+
+  .actions {
+    padding: 20px 40px 30px;
+    text-align: center;
+    background: #f8f9fc;
+    border-top: 1px solid #e3e8f0;
+  }
+  button.action-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff; border: none;
+    padding: 12px 28px;
+    border-radius: 30px;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; margin: 0 6px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  }
+  button.action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(102, 126, 234, 0.5); }
+  button.action-btn.secondary {
+    background: #fff; color: #667eea;
+    border: 2px solid #667eea; box-shadow: none;
+  }
+  button.action-btn.warn {
+    background: linear-gradient(135deg, #f5af19, #f12711);
+    box-shadow: 0 4px 12px rgba(241, 39, 17, 0.4);
+  }
+
+  /* ロック画面 */
+  .lock-overlay {
+    position: fixed; inset: 0;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    display: flex;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  .lock-overlay.hidden { display: none; }
+  .lock-box {
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px 36px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .lock-box .lock-icon {
+    font-size: 56px;
+    margin-bottom: 14px;
+  }
+  .lock-box h2 {
+    font-size: 22px;
+    margin-bottom: 8px;
+    color: #2c3e50;
+  }
+  .lock-box p {
+    font-size: 13px;
+    color: #7f8c9b;
+    margin-bottom: 22px;
+    line-height: 1.6;
+  }
+  .lock-box input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e3e8f0;
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .lock-box input[type="password"]:focus {
+    outline: none; border-color: #667eea;
+    box-shadow: 0 0 0 3px #667eea33;
+  }
+  .lock-box button {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  .lock-box button:hover { transform: translateY(-1px); }
+  .lock-box .err {
+    color: #f12711;
+    font-size: 13px;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+  .lock-box .hint {
+    font-size: 11px;
+    color: #95a5a6;
+    margin-top: 14px;
+    line-height: 1.5;
+  }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #2c3e50; color: #fff;
+    padding: 12px 24px; border-radius: 30px;
+    font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    transition: transform 0.3s;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: #11998e; }
+  .toast.error { background: #f12711; }
+
+  /* モーダル */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 999;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+  .modal h2 {
+    font-size: 20px; margin-bottom: 12px;
+    border-bottom: 2px solid #eef1f7;
+    padding-bottom: 10px;
+  }
+  .modal .close-btn {
+    margin-top: 16px;
+    text-align: right;
+  }
+
+  @media (max-width: 760px) {
+    .summary { grid-template-columns: 1fr; }
+    .header { padding: 20px; }
+    .categories, .input-section, .archive-section, .settings-section { padding: 20px; }
+    .header h1 { font-size: 20px; }
+    .share-bar { padding: 10px 20px; }
+    .input-row label { min-width: auto; flex: 1 0 100%; }
+    .account-header input.acc-name { width: 100%; }
+    .archive-card { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ロック画面 -->
+<div class="lock-overlay" id="lockOverlay">
+  <div class="lock-box">
+    <div class="lock-icon">🔒</div>
+    <h2 id="lockTitle">パスワードを入力</h2>
+    <p id="lockDesc">このアプリは保護されています。<br>2人で決めた合言葉を入力してください。</p>
+    <input type="password" id="lockPwd" placeholder="パスワード" autocomplete="off">
+    <input type="password" id="lockPwdConfirm" placeholder="もう一度入力（初回のみ）" autocomplete="off" style="display:none;">
+    <button id="lockBtn" onclick="onLockSubmit()">解除</button>
+    <div class="err" id="lockErr"></div>
+    <div class="hint" id="lockHint">
+      ※ パスワードは端末に記憶され、次回からスキップされます。<br>
+      ※ パスワードを忘れた場合、復元はできません。
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="header">
+    <h1>業績給 進捗トラッカー</h1>
+    <p>2アカウント運用 / 1,000点満点 / 月次アーカイブ・目標カスタマイズ対応</p>
+  </div>
+
+  <!-- 共有バー -->
+  <div class="share-bar">
+    <div>共有ID: <span class="room" id="roomIdDisplay">読み込み中...</span></div>
+    <div class="sync-status">
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncText">未接続</span>
+    </div>
+    <div>
+      <button onclick="copyShareLink()">共有リンクをコピー</button>
+      <button onclick="manualRefresh()" style="background:#6dd5ed;">最新を取得</button>
+    </div>
+  </div>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <div class="tab active" data-page="dashboard" onclick="switchPage('dashboard')">📊 ダッシュボード</div>
+    <div class="tab" data-page="acc1" onclick="switchPage('acc1')">✏️ <span id="tabAcc1Name">アカウント1</span></div>
+    <div class="tab" data-page="acc2" onclick="switchPage('acc2')">✏️ <span id="tabAcc2Name">アカウント2</span></div>
+    <div class="tab" data-page="archive" onclick="switchPage('archive')">📁 履歴</div>
+    <div class="tab" data-page="settings" onclick="switchPage('settings')">⚙️ 設定</div>
+  </div>
+
+  <!-- ダッシュボード -->
+  <div class="page active" id="page-dashboard">
+    <div class="summary">
+      <div class="summary-card">
+        <div class="label">合計スコア / 達成度（2アカウント合算）</div>
+        <div class="value"><span id="totalScore">0</span> <span style="font-size:16px;color:#95a5a6;">/ 1000点</span></div>
+        <div class="sub">達成度 <span id="totalPercent">0</span>%</div>
+        <div class="total-bar-container">
+          <div class="total-bar-fill" id="totalBarFill"></div>
+        </div>
+      </div>
+      <div class="summary-card" style="text-align:center;">
+        <div class="label">現在の評価</div>
+        <div style="margin-top:6px;"><span class="rank-badge rank-D" id="rankBadge">D</span></div>
+      </div>
+      <div class="summary-card" style="text-align:center;">
+        <div class="label">業績給</div>
+        <div class="salary-box">
+          <span class="yen">¥</span><span class="amount" id="salaryAmount">5,000</span>
+        </div>
+        <div class="sub">+ 基本給 ¥3,000</div>
+      </div>
+    </div>
+    <div class="categories" id="categoriesArea"></div>
+  </div>
+
+  <!-- アカウント1 -->
+  <div class="page" id="page-acc1">
+    <div class="input-section">
+      <div class="account-header">
+        <div class="title-area">
+          <div class="acc-icon">A1</div>
+          <input type="text" class="acc-name" id="acc1NameInput" placeholder="アカウント1の名前">
+        </div>
+        <div class="acc-score" id="acc1ScoreDisplay">単独スコア: 0 / 1000点</div>
+      </div>
+      <div class="input-intro">
+        💡 <b>アカウント1の単月実績</b>を数字で入力してください。<br>
+        2アカウントの合計が「ダッシュボード」に反映されます。
+      </div>
+      <div id="acc1InputArea"></div>
+    </div>
+  </div>
+
+  <!-- アカウント2 -->
+  <div class="page" id="page-acc2">
+    <div class="input-section">
+      <div class="account-header" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
+        <div class="title-area">
+          <div class="acc-icon">A2</div>
+          <input type="text" class="acc-name" id="acc2NameInput" placeholder="アカウント2の名前">
+        </div>
+        <div class="acc-score" id="acc2ScoreDisplay">単独スコア: 0 / 1000点</div>
+      </div>
+      <div class="input-intro">
+        💡 <b>アカウント2の単月実績</b>を数字で入力してください。<br>
+        2アカウントの合計が「ダッシュボード」に反映されます。
+      </div>
+      <div id="acc2InputArea"></div>
+    </div>
+  </div>
+
+  <!-- 履歴ページ -->
+  <div class="page" id="page-archive">
+    <div class="archive-section">
+      <div class="archive-controls">
+        <div class="text">
+          📅 <b>今月の評価を確定して保存します。</b><br>
+          現在の入力値が「履歴」として記録され、両アカウントの入力欄が0にリセットされます（目標値は維持されます）。
+        </div>
+        <button onclick="archiveCurrentMonth()">今月をアーカイブ</button>
+      </div>
+      <div class="archive-list" id="archiveList"></div>
+    </div>
+  </div>
+
+  <!-- 設定ページ -->
+  <div class="page" id="page-settings">
+    <div class="settings-section">
+      <div class="settings-intro">
+        ⚙️ <b>各項目の月間目標を変更できます。</b><br>
+        変更しても入力済みの実績データは保持され、新しい目標で達成度が再計算されます。<br>
+        ここで設定する目標は <b>「アカウント1つあたりの月間目標」</b> です。ダッシュボードでは2アカウント合算で評価されます（合算目標 = 設定値 × 2）。
+      </div>
+      <div id="settingsArea"></div>
+      <div style="text-align:center; margin-top:20px;">
+        <button class="action-btn warn" onclick="resetTargetsToDefault()">目標を初期値に戻す</button>
+      </div>
+
+      <!-- セキュリティ -->
+      <div class="settings-card" style="margin-top:30px;">
+        <div class="input-card-header">
+          <div class="input-card-title">
+            <span class="icon" style="background:#2c3e50;">🔒</span>
+            <span>セキュリティ</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#7f8c9b;margin:8px 0 14px;line-height:1.6;">
+          このアプリはパスワードで保護されています。<br>
+          スマホなど別の端末でアクセスする場合は、共有リンクとパスワードの両方を相手に伝えてください。
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="action-btn secondary" onclick="changePassword()">パスワードを変更</button>
+          <button class="action-btn secondary" onclick="logout()">この端末からログアウト</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アクション -->
+  <div class="actions">
+    <button class="action-btn" onclick="saveAndSync()">💾 保存して共有</button>
+    <button class="action-btn secondary" onclick="resetCurrentMonth()">今月の入力をリセット</button>
+  </div>
+</div>
+
+<!-- 履歴詳細モーダル -->
+<div class="modal-overlay" id="archiveModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="archiveModalContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==========================================================================
+   業績給 進捗トラッカー（2アカウント・履歴・設定対応）
+   ========================================================================== */
+
+/* デフォルトカテゴリ定義 */
+const DEFAULT_CATEGORIES = [
+  {
+    id: 1, name: '競合リサーチ・分析', max: 150, icon:'1',
+    color:'linear-gradient(90deg,#FF6B6B,#FFE66D)', iconColor:'#FF6B6B',
+    desc:'1日10件以上の競合リサーチ、構造化記録、週次レポート',
+    inputs:[
+      { key:'research_count', label:'競合リサーチ件数', unit:'件', target:220, weight:100 },
+      { key:'research_report', label:'週次レポート提出', unit:'本', target:4, weight:30 },
+      { key:'research_struct', label:'構造化記録の遵守日数', unit:'日', target:22, weight:20 },
+    ]
+  },
+  {
+    id: 2, name: '台本作成', max: 150, icon:'2',
+    color:'linear-gradient(90deg,#A8E6CF,#3D84A8)', iconColor:'#3D84A8',
+    desc:'週14本以上、構成テンプレ準拠、修正対応スピード',
+    inputs:[
+      { key:'script_count', label:'台本作成本数', unit:'本', target:56, weight:100 },
+      { key:'script_template', label:'テンプレ準拠本数', unit:'本', target:56, weight:30 },
+      { key:'script_revise', label:'24h以内修正対応回数', unit:'回', target:10, weight:20 },
+    ]
+  },
+  {
+    id: 3, name: '撮影業務', max: 120, icon:'3',
+    color:'linear-gradient(90deg,#FFB75E,#ED8F03)', iconColor:'#ED8F03',
+    desc:'撮影完了率、素材ストック、クオリティ',
+    inputs:[
+      { key:'shoot_count', label:'撮影完了本数', unit:'本', target:60, weight:80 },
+      { key:'shoot_stock', label:'素材ストック数', unit:'本', target:20, weight:25 },
+      { key:'shoot_quality', label:'クオリティOK本数', unit:'本', target:60, weight:15 },
+    ]
+  },
+  {
+    id: 4, name: '投稿業務 ★最重要', max: 180, icon:'4',
+    color:'linear-gradient(90deg,#f12711,#f5af19)', iconColor:'#f12711',
+    desc:'毎日投稿、ゴールデンタイム遵守、ハッシュタグ最適化',
+    inputs:[
+      { key:'post_count', label:'投稿数', unit:'投稿', target:30, weight:100 },
+      { key:'post_golden', label:'ゴールデンタイム投稿数', unit:'投稿', target:30, weight:50 },
+      { key:'post_hashtag', label:'ハッシュタグ最適化済み投稿', unit:'投稿', target:30, weight:30 },
+    ]
+  },
+  {
+    id: 5, name: 'ストーリーズ運用', max: 100, icon:'5',
+    color:'linear-gradient(90deg,#6a11cb,#2575fc)', iconColor:'#6a11cb',
+    desc:'毎日3投稿以上、スタンプ活用',
+    inputs:[
+      { key:'story_count', label:'ストーリーズ投稿数', unit:'件', target:90, weight:70 },
+      { key:'story_stamp', label:'スタンプ活用投稿数', unit:'件', target:30, weight:30 },
+    ]
+  },
+  {
+    id: 6, name: 'いいね回り・エンゲージメント', max: 150, icon:'6',
+    color:'linear-gradient(90deg,#11998e,#38ef7d)', iconColor:'#11998e',
+    desc:'いいね1日30件以上、コメント1日40件以上、ターゲット精度',
+    inputs:[
+      { key:'like_count', label:'いいね数', unit:'件', target:900, weight:90 },
+      { key:'comment_count', label:'コメント数', unit:'件', target:1200, weight:40 },
+      { key:'target_accuracy', label:'ターゲット精度日数', unit:'日', target:30, weight:20 },
+    ]
+  },
+];
+const TOTAL_MAX = 1000;
+const ACCOUNTS = ['acc1', 'acc2'];
+
+/* デフォルト目標マップ */
+const DEFAULT_TARGETS = {};
+DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { DEFAULT_TARGETS[i.key] = i.target; }));
+
+/* 状態 */
+let state = {
+  names: { acc1: 'アカウント1', acc2: 'アカウント2' },
+  acc1: { values: {} },
+  acc2: { values: {} },
+  targets: {},     // ユーザー上書きの目標値。ない場合はデフォルトを使用
+  archives: [],    // 月次アーカイブ
+  passwordHash: null, // パスワードのSHA-256ハッシュ。null=未設定
+};
+let isAuthenticated = false;
+
+function ensureStateShape() {
+  if (!state.names) state.names = { acc1: 'アカウント1', acc2: 'アカウント2' };
+  ACCOUNTS.forEach(a => {
+    if (!state[a]) state[a] = { values: {} };
+    if (!state[a].values) state[a].values = {};
+    DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+      if (typeof state[a].values[i.key] !== 'number') state[a].values[i.key] = 0;
+    }));
+  });
+  if (!state.targets) state.targets = {};
+  if (!Array.isArray(state.archives)) state.archives = [];
+}
+
+/* 目標値取得 */
+function getTarget(key) {
+  if (state.targets && state.targets[key] != null && !isNaN(state.targets[key])) {
+    return state.targets[key];
+  }
+  return DEFAULT_TARGETS[key] || 1;
+}
+
+/* ==========================================================================
+   共有同期
+   ========================================================================== */
+const API_BASE = 'https://jsonblob.com/api/jsonBlob';
+let roomId = null;
+let pollTimer = null;
+
+function getRoomIdFromHash() {
+  const m = location.hash.match(/room=([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+function setRoomIdHash(id) { location.hash = 'room=' + id; }
+function setSyncStatus(status, text) {
+  document.getElementById('syncDot').className = 'sync-dot ' + status;
+  document.getElementById('syncText').textContent = text;
+}
+
+async function createRoom() {
+  setSyncStatus('syncing', '新規共有ルーム作成中...');
+  try {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+      body: JSON.stringify(state),
+    });
+    const loc = res.headers.get('Location') || '';
+    const id = loc.split('/').pop();
+    if (!id) throw new Error('No ID');
+    roomId = id;
+    setRoomIdHash(id);
+    document.getElementById('roomIdDisplay').textContent = id;
+    setSyncStatus('ok', '共有中');
+    saveLocal();
+    startPolling();
+    return id;
+  } catch (e) {
+    console.error(e);
+    setSyncStatus('err', 'オフライン（ローカル保存のみ）');
+    document.getElementById('roomIdDisplay').textContent = 'ローカルのみ';
+    return null;
+  }
+}
+
+async function fetchRoom(silent = false) {
+  if (!roomId) return;
+  if (!silent) setSyncStatus('syncing', '取得中...');
+  try {
+    const res = await fetch(API_BASE + '/' + roomId);
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    if (data) {
+      // 旧フォーマット移行
+      if (data.values && !data.acc1) {
+        state = {
+          names: { acc1: 'アカウント1', acc2: 'アカウント2' },
+          acc1: { values: data.values },
+          acc2: { values: {} },
+          targets: {},
+          archives: [],
+        };
+      } else {
+        state = data;
+      }
+      ensureStateShape();
+      saveLocal();
+      renderAll();
+    }
+    setSyncStatus('ok', '共有中');
+  } catch (e) {
+    console.error(e);
+    setSyncStatus('err', '同期エラー');
+  }
+}
+
+async function pushRoom() {
+  if (!roomId) return;
+  setSyncStatus('syncing', '保存中...');
+  try {
+    const res = await fetch(API_BASE + '/' + roomId, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+      body: JSON.stringify(state),
+    });
+    if (!res.ok) throw new Error('push failed');
+    setSyncStatus('ok', '共有中');
+    showToast('保存しました', 'success');
+  } catch (e) {
+    console.error(e);
+    setSyncStatus('err', '保存エラー');
+    showToast('クラウド保存に失敗（ローカルには保存）', 'error');
+  }
+  saveLocal();
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => fetchRoom(true), 5000);
+}
+
+function saveLocal() {
+  try { localStorage.setItem('progress_state_v3', JSON.stringify(state)); } catch(e){}
+}
+function loadLocal() {
+  try {
+    const s3 = localStorage.getItem('progress_state_v3');
+    if (s3) { state = JSON.parse(s3); return; }
+    const s2 = localStorage.getItem('progress_state_v2');
+    if (s2) { state = JSON.parse(s2); return; }
+    const s1 = localStorage.getItem('progress_state');
+    if (s1) {
+      const o = JSON.parse(s1);
+      state = {
+        names: { acc1: 'アカウント1', acc2: 'アカウント2' },
+        acc1: { values: o.values || {} },
+        acc2: { values: {} },
+        targets: {},
+        archives: [],
+      };
+    }
+  } catch(e){}
+  ensureStateShape();
+}
+
+async function initSync() {
+  loadLocal();
+  ensureStateShape();
+  const hashId = getRoomIdFromHash();
+  if (hashId) {
+    roomId = hashId;
+    document.getElementById('roomIdDisplay').textContent = hashId;
+    setSyncStatus('syncing', '接続中...');
+    await fetchRoom();
+  } else {
+    await createRoom();
+  }
+  // 認証チェック
+  await checkAuthentication();
+  if (isAuthenticated) {
+    startPolling();
+    renderAll();
+  }
+}
+
+/* ==========================================================================
+   パスワード認証
+   ========================================================================== */
+async function sha256(str) {
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkAuthentication() {
+  const lockOverlay = document.getElementById('lockOverlay');
+  // パスワード未設定（初回）
+  if (!state.passwordHash) {
+    showSetPasswordScreen();
+    return false;
+  }
+  // 端末に認証トークンがあるか確認
+  const authKey = 'auth_' + (roomId || 'local');
+  const savedHash = localStorage.getItem(authKey);
+  if (savedHash === state.passwordHash) {
+    isAuthenticated = true;
+    lockOverlay.classList.add('hidden');
+    return true;
+  }
+  // 入力を求める
+  showEnterPasswordScreen();
+  return false;
+}
+
+function showSetPasswordScreen() {
+  document.getElementById('lockTitle').textContent = '🆕 初回パスワード設定';
+  document.getElementById('lockDesc').innerHTML = 'このアプリにアクセスするためのパスワードを設定してください。<br><b>2人で共有する合言葉</b>になります。';
+  document.getElementById('lockPwd').placeholder = '新しいパスワード（6文字以上）';
+  document.getElementById('lockPwdConfirm').style.display = 'block';
+  document.getElementById('lockPwdConfirm').placeholder = 'もう一度入力';
+  document.getElementById('lockBtn').textContent = '設定';
+  document.getElementById('lockHint').innerHTML = '※ 設定後、もう1人にURLとパスワードを伝えてください。<br>※ パスワードは復元できません。忘れないようにご注意ください。';
+  document.getElementById('lockOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('lockPwd').focus(), 200);
+}
+
+function showEnterPasswordScreen() {
+  document.getElementById('lockTitle').textContent = '🔒 パスワードを入力';
+  document.getElementById('lockDesc').innerHTML = 'このアプリは保護されています。<br>2人で決めた合言葉を入力してください。';
+  document.getElementById('lockPwd').placeholder = 'パスワード';
+  document.getElementById('lockPwd').value = '';
+  document.getElementById('lockPwdConfirm').style.display = 'none';
+  document.getElementById('lockBtn').textContent = '解除';
+  document.getElementById('lockHint').innerHTML = '※ パスワードは端末に記憶され、次回からスキップされます。<br>※ パスワードを忘れた場合、復元はできません。';
+  document.getElementById('lockOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('lockPwd').focus(), 200);
+}
+
+async function onLockSubmit() {
+  const pwd = document.getElementById('lockPwd').value;
+  const errEl = document.getElementById('lockErr');
+  errEl.textContent = '';
+  if (!pwd || pwd.length < 6) {
+    errEl.textContent = '6文字以上のパスワードを入力してください';
+    return;
+  }
+  // 初回設定モードかチェック
+  if (!state.passwordHash) {
+    const confirm = document.getElementById('lockPwdConfirm').value;
+    if (pwd !== confirm) {
+      errEl.textContent = '2回のパスワードが一致しません';
+      return;
+    }
+    const hash = await sha256(pwd);
+    state.passwordHash = hash;
+    saveLocal();
+    await pushRoom();
+    const authKey = 'auth_' + (roomId || 'local');
+    localStorage.setItem(authKey, hash);
+    isAuthenticated = true;
+    document.getElementById('lockOverlay').classList.add('hidden');
+    startPolling();
+    renderAll();
+    showToast('パスワードを設定しました', 'success');
+  } else {
+    const hash = await sha256(pwd);
+    if (hash === state.passwordHash) {
+      const authKey = 'auth_' + (roomId || 'local');
+      localStorage.setItem(authKey, hash);
+      isAuthenticated = true;
+      document.getElementById('lockOverlay').classList.add('hidden');
+      startPolling();
+      renderAll();
+    } else {
+      errEl.textContent = 'パスワードが正しくありません';
+      document.getElementById('lockPwd').value = '';
+    }
+  }
+}
+
+async function changePassword() {
+  const oldPwd = prompt('現在のパスワードを入力してください:');
+  if (!oldPwd) return;
+  const oldHash = await sha256(oldPwd);
+  if (oldHash !== state.passwordHash) {
+    showToast('現在のパスワードが正しくありません', 'error');
+    return;
+  }
+  const newPwd = prompt('新しいパスワード（6文字以上）:');
+  if (!newPwd || newPwd.length < 6) {
+    showToast('6文字以上のパスワードが必要です', 'error');
+    return;
+  }
+  const confirmPwd = prompt('もう一度新しいパスワードを入力:');
+  if (newPwd !== confirmPwd) {
+    showToast('パスワードが一致しません', 'error');
+    return;
+  }
+  const newHash = await sha256(newPwd);
+  state.passwordHash = newHash;
+  saveLocal();
+  await pushRoom();
+  const authKey = 'auth_' + (roomId || 'local');
+  localStorage.setItem(authKey, newHash);
+  showToast('パスワードを変更しました。相手にも新パスワードを伝えてください', 'success');
+}
+
+function logout() {
+  if (!confirm('この端末からログアウトします。次回開いたときにパスワードの再入力が必要になります。')) return;
+  const authKey = 'auth_' + (roomId || 'local');
+  localStorage.removeItem(authKey);
+  location.reload();
+}
+
+/* Enterキーで送信 */
+document.addEventListener('DOMContentLoaded', () => {
+  ['lockPwd','lockPwdConfirm'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') onLockSubmit(); });
+  });
+});
+
+/* ==========================================================================
+   スコア計算
+   ========================================================================== */
+function computeCategoryScoreCombined(c, valuesA1, valuesA2, targetsOverride) {
+  const v1 = valuesA1 || state.acc1.values;
+  const v2 = valuesA2 || state.acc2.values;
+  let score = 0;
+  c.inputs.forEach(i => {
+    const t = targetsOverride && targetsOverride[i.key] != null ? targetsOverride[i.key] : getTarget(i.key);
+    const sum = (v1[i.key] || 0) + (v2[i.key] || 0);
+    const ratio = Math.min(1, sum / (t * 2));
+    score += ratio * i.weight;
+  });
+  const weightSum = c.inputs.reduce((a, x) => a + x.weight, 0);
+  return (score / weightSum) * c.max;
+}
+
+function computeCategoryScoreSingle(c, accKey) {
+  let score = 0;
+  c.inputs.forEach(i => {
+    const v = state[accKey].values[i.key] || 0;
+    const ratio = Math.min(1, v / getTarget(i.key));
+    score += ratio * i.weight;
+  });
+  const weightSum = c.inputs.reduce((a, x) => a + x.weight, 0);
+  return (score / weightSum) * c.max;
+}
+
+function computeTotalCombined() {
+  let total = 0;
+  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScoreCombined(c));
+  return total;
+}
+function computeTotalSingle(accKey) {
+  let total = 0;
+  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScoreSingle(c, accKey));
+  return total;
+}
+
+function rankFromPct(pct) {
+  if (pct >= 95) return { rank:'S', salary:50000 };
+  if (pct >= 85) return { rank:'A', salary:40000 };
+  if (pct >= 70) return { rank:'B', salary:28000 };
+  if (pct >= 55) return { rank:'C', salary:15000 };
+  return { rank:'D', salary:5000 };
+}
+
+/* ==========================================================================
+   レンダリング
+   ========================================================================== */
+function renderDashboard() {
+  const area = document.getElementById('categoriesArea');
+  area.innerHTML = '';
+  DEFAULT_CATEGORIES.forEach(c => {
+    const score = computeCategoryScoreCombined(c);
+    const pct = (score / c.max) * 100;
+    const breakdownItems = c.inputs.map(i => {
+      const v1 = state.acc1.values[i.key] || 0;
+      const v2 = state.acc2.values[i.key] || 0;
+      const sum = v1 + v2;
+      return `<span>${i.label}: <b>${sum}</b>${i.unit} <span style="color:#95a5a6;">(${state.names.acc1.slice(0,6)}:${v1} + ${state.names.acc2.slice(0,6)}:${v2} / 目標${getTarget(i.key)*2}${i.unit})</span></span>`;
+    }).join('');
+    const div = document.createElement('div');
+    div.className = 'category';
+    div.innerHTML = `
+      <div class="cat-header">
+        <div class="cat-title">
+          <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
+          <span>${c.name}</span>
+        </div>
+        <div class="cat-points">
+          <span class="current">${score.toFixed(0)}</span> / ${c.max}点
+        </div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-bar">
+          <div class="progress-fill" style="background:${c.color}; width:${pct}%;"></div>
+        </div>
+        <div class="progress-percent">${pct.toFixed(0)}%</div>
+      </div>
+      <div class="cat-detail">${c.desc}</div>
+      <div class="cat-breakdown">${breakdownItems}</div>
+    `;
+    area.appendChild(div);
+  });
+  const total = computeTotalCombined();
+  const totalPct = (total / TOTAL_MAX) * 100;
+  document.getElementById('totalScore').textContent = total.toFixed(0);
+  document.getElementById('totalPercent').textContent = totalPct.toFixed(1);
+  document.getElementById('totalBarFill').style.width = totalPct + '%';
+  const r = rankFromPct(totalPct);
+  const badge = document.getElementById('rankBadge');
+  badge.textContent = r.rank;
+  badge.className = 'rank-badge rank-' + r.rank;
+  document.getElementById('salaryAmount').textContent = r.salary.toLocaleString();
+}
+
+function renderInput(accKey) {
+  const areaId = accKey === 'acc1' ? 'acc1InputArea' : 'acc2InputArea';
+  const area = document.getElementById(areaId);
+  area.innerHTML = '';
+  DEFAULT_CATEGORIES.forEach(c => {
+    const score = computeCategoryScoreSingle(c, accKey);
+    const card = document.createElement('div');
+    card.className = 'input-card';
+    let inputsHtml = '';
+    c.inputs.forEach(i => {
+      const val = state[accKey].values[i.key] || 0;
+      const tgt = getTarget(i.key);
+      inputsHtml += `
+        <div class="input-row">
+          <label>${i.label}</label>
+          <input type="number" min="0" step="1" value="${val}"
+            data-key="${i.key}" data-acc="${accKey}" oninput="onInputChange(this)">
+          <span class="unit">${i.unit}</span>
+          <span class="target">単独目標 ${tgt}${i.unit}</span>
+        </div>
+      `;
+    });
+    card.innerHTML = `
+      <div class="input-card-header">
+        <div class="input-card-title">
+          <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
+          <span>${c.name}</span>
+        </div>
+        <div class="cat-points">
+          <span class="current">${score.toFixed(0)}</span> / ${c.max}点
+        </div>
+      </div>
+      ${inputsHtml}
+    `;
+    area.appendChild(card);
+  });
+  const total = computeTotalSingle(accKey);
+  const displayId = accKey === 'acc1' ? 'acc1ScoreDisplay' : 'acc2ScoreDisplay';
+  document.getElementById(displayId).textContent = `単独スコア: ${total.toFixed(0)} / 1000点`;
+}
+
+function renderSettings() {
+  const area = document.getElementById('settingsArea');
+  area.innerHTML = '';
+  DEFAULT_CATEGORIES.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'settings-card';
+    let rowsHtml = '';
+    c.inputs.forEach(i => {
+      const cur = getTarget(i.key);
+      const def = DEFAULT_TARGETS[i.key];
+      rowsHtml += `
+        <div class="settings-row">
+          <label>${i.label} <span class="default">（初期値: ${def}${i.unit}）</span></label>
+          <input type="number" min="1" step="1" value="${cur}"
+            data-key="${i.key}" oninput="onTargetChange(this)">
+          <span class="unit">${i.unit}</span>
+        </div>
+      `;
+    });
+    card.innerHTML = `
+      <div class="input-card-header">
+        <div class="input-card-title">
+          <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
+          <span>${c.name}</span>
+        </div>
+      </div>
+      ${rowsHtml}
+    `;
+    area.appendChild(card);
+  });
+}
+
+function renderArchive() {
+  const area = document.getElementById('archiveList');
+  area.innerHTML = '';
+  if (!state.archives || state.archives.length === 0) {
+    area.innerHTML = `<div class="archive-empty">📭 まだ履歴はありません<br>月末に「今月をアーカイブ」ボタンで記録できます</div>`;
+    return;
+  }
+  // 新しい順
+  const sorted = [...state.archives].sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
+  sorted.forEach(ar => {
+    const r = ar.summary || {};
+    const rankClass = 'rank-' + (r.rank || 'D');
+    const card = document.createElement('div');
+    card.className = 'archive-card';
+    card.innerHTML = `
+      <div>
+        <div class="ar-month">${ar.label || ar.id}</div>
+        <div class="ar-month-sub">${(ar.archivedAt||'').slice(0,10)} 確定</div>
+      </div>
+      <div class="ar-item">
+        <div class="lbl">合計スコア</div>
+        <div class="val">${(r.totalScore||0).toFixed(0)} / 1000</div>
+      </div>
+      <div class="ar-item">
+        <div class="lbl">達成度</div>
+        <div class="val">${(r.totalPercent||0).toFixed(1)}%</div>
+      </div>
+      <div class="ar-item">
+        <div class="lbl">業績給</div>
+        <div class="val">¥${(r.salary||0).toLocaleString()}</div>
+      </div>
+      <div class="ar-item">
+        <span class="ar-rank ${rankClass}">${r.rank || '-'}</span>
+      </div>
+      <div class="ar-actions" style="grid-column: 1 / -1; justify-content:flex-end;">
+        <button onclick="viewArchive('${ar.id}')">詳細を見る</button>
+        <button class="danger" onclick="deleteArchive('${ar.id}')">削除</button>
+      </div>
+    `;
+    area.appendChild(card);
+  });
+}
+
+function renderNames() {
+  document.getElementById('tabAcc1Name').textContent = state.names.acc1 || 'アカウント1';
+  document.getElementById('tabAcc2Name').textContent = state.names.acc2 || 'アカウント2';
+  document.getElementById('acc1NameInput').value = state.names.acc1 || '';
+  document.getElementById('acc2NameInput').value = state.names.acc2 || '';
+}
+
+function renderAll() {
+  renderNames();
+  renderDashboard();
+  renderInput('acc1');
+  renderInput('acc2');
+  renderArchive();
+  renderSettings();
+}
+
+/* 入力変更 */
+function onInputChange(el) {
+  const key = el.dataset.key;
+  const acc = el.dataset.acc;
+  const val = Math.max(0, Number(el.value) || 0);
+  state[acc].values[key] = val;
+  saveLocal();
+  const card = el.closest('.input-card');
+  const cat = DEFAULT_CATEGORIES.find(c => c.inputs.some(i => i.key === key));
+  if (cat && card) {
+    card.querySelector('.cat-points .current').textContent = computeCategoryScoreSingle(cat, acc).toFixed(0);
+  }
+  const displayId = acc === 'acc1' ? 'acc1ScoreDisplay' : 'acc2ScoreDisplay';
+  document.getElementById(displayId).textContent = `単独スコア: ${computeTotalSingle(acc).toFixed(0)} / 1000点`;
+  renderDashboard();
+}
+
+/* 目標変更 */
+function onTargetChange(el) {
+  const key = el.dataset.key;
+  let val = Number(el.value);
+  if (!val || val < 1) val = 1;
+  state.targets[key] = val;
+  saveLocal();
+  // ダッシュボード・入力ページのスコアも更新
+  renderDashboard();
+  renderInput('acc1');
+  renderInput('acc2');
+}
+
+function resetTargetsToDefault() {
+  if (!confirm('すべての目標値を初期値に戻します。よろしいですか？\n（入力済みの実績データは保持されます）')) return;
+  state.targets = {};
+  saveLocal();
+  renderAll();
+  showToast('目標を初期値に戻しました', 'success');
+}
+
+/* アカウント名 */
+function onAccountNameChange(accKey, val) {
+  state.names[accKey] = val || (accKey === 'acc1' ? 'アカウント1' : 'アカウント2');
+  saveLocal();
+  renderNames();
+  renderDashboard();
+}
+
+/* アーカイブ操作 */
+function archiveCurrentMonth() {
+  // 何も入力されていない場合は警告
+  let anyInput = false;
+  ACCOUNTS.forEach(a => DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    if ((state[a].values[i.key] || 0) > 0) anyInput = true;
+  })));
+  if (!anyInput) {
+    if (!confirm('入力値がすべて0です。それでもアーカイブしますか？')) return;
+  }
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = (now.getMonth() + 1).toString().padStart(2, '0');
+  const baseId = `${y}-${m}`;
+  // 同月が既にあれば連番をつける
+  let id = baseId;
+  let suffix = 2;
+  while (state.archives.some(a => a.id === id)) {
+    id = `${baseId}-${suffix++}`;
+  }
+  const totalScore = computeTotalCombined();
+  const totalPercent = (totalScore / TOTAL_MAX) * 100;
+  const r = rankFromPct(totalPercent);
+  const archive = {
+    id,
+    label: `${y}年${parseInt(m)}月`,
+    archivedAt: now.toISOString(),
+    names: { ...state.names },
+    acc1: { values: { ...state.acc1.values } },
+    acc2: { values: { ...state.acc2.values } },
+    targets: { ...state.targets },
+    summary: {
+      totalScore, totalPercent,
+      rank: r.rank, salary: r.salary,
+    }
+  };
+  state.archives.push(archive);
+  // 入力値リセット
+  ACCOUNTS.forEach(a => DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    state[a].values[i.key] = 0;
+  })));
+  saveLocal();
+  pushRoom();
+  renderAll();
+  showToast(`「${archive.label}」をアーカイブしました`, 'success');
+}
+
+function deleteArchive(id) {
+  if (!confirm('この履歴を削除します。よろしいですか？')) return;
+  state.archives = state.archives.filter(a => a.id !== id);
+  saveLocal();
+  pushRoom();
+  renderArchive();
+  showToast('履歴を削除しました', 'success');
+}
+
+function viewArchive(id) {
+  const ar = state.archives.find(a => a.id === id);
+  if (!ar) return;
+  // 詳細表示：アーカイブ時の目標で再計算
+  let detailHtml = `<h2>${ar.label} の詳細</h2>`;
+  detailHtml += `<div style="font-size:12px;color:#7f8c9b;margin-bottom:14px;">確定日時: ${(ar.archivedAt||'').replace('T',' ').slice(0,16)}</div>`;
+  detailHtml += `<div style="display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+      <div style="font-size:11px;color:#7f8c9b;">合計スコア</div>
+      <div style="font-size:22px;font-weight:700;">${(ar.summary.totalScore||0).toFixed(0)} / 1000</div>
+    </div>
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+      <div style="font-size:11px;color:#7f8c9b;">達成度</div>
+      <div style="font-size:22px;font-weight:700;">${(ar.summary.totalPercent||0).toFixed(1)}%</div>
+    </div>
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+      <div style="font-size:11px;color:#7f8c9b;">評価</div>
+      <div style="font-size:22px;font-weight:900;">${ar.summary.rank}</div>
+    </div>
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+      <div style="font-size:11px;color:#7f8c9b;">業績給</div>
+      <div style="font-size:22px;font-weight:700;color:#11998e;">¥${(ar.summary.salary||0).toLocaleString()}</div>
+    </div>
+  </div>`;
+  detailHtml += `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+    <thead>
+      <tr style="background:#eef1f7;">
+        <th style="padding:8px;text-align:left;">項目</th>
+        <th style="padding:8px;text-align:right;">${ar.names.acc1}</th>
+        <th style="padding:8px;text-align:right;">${ar.names.acc2}</th>
+        <th style="padding:8px;text-align:right;">合計</th>
+        <th style="padding:8px;text-align:right;">合算目標</th>
+      </tr>
+    </thead><tbody>`;
+  DEFAULT_CATEGORIES.forEach(c => {
+    detailHtml += `<tr style="background:${c.iconColor}22;"><td colspan="5" style="padding:6px 8px;font-weight:700;">${c.name}</td></tr>`;
+    c.inputs.forEach(i => {
+      const v1 = ar.acc1.values[i.key] || 0;
+      const v2 = ar.acc2.values[i.key] || 0;
+      const tgt = (ar.targets && ar.targets[i.key] != null) ? ar.targets[i.key] : (DEFAULT_TARGETS[i.key] || 1);
+      detailHtml += `<tr style="border-bottom:1px solid #eef1f7;">
+        <td style="padding:6px 8px;">${i.label}</td>
+        <td style="padding:6px 8px;text-align:right;">${v1}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;">${v2}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:700;">${v1+v2}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;color:#95a5a6;">${tgt*2}${i.unit}</td>
+      </tr>`;
+    });
+  });
+  detailHtml += `</tbody></table>
+    <div class="close-btn"><button class="action-btn secondary" onclick="closeModal()">閉じる</button></div>`;
+  document.getElementById('archiveModalContent').innerHTML = detailHtml;
+  document.getElementById('archiveModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('archiveModal').classList.remove('show');
+}
+
+/* タブ */
+function switchPage(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'acc1') renderInput('acc1');
+  if (name === 'acc2') renderInput('acc2');
+  if (name === 'archive') renderArchive();
+  if (name === 'settings') renderSettings();
+}
+
+/* 操作 */
+function saveAndSync() { pushRoom(); }
+function manualRefresh() { fetchRoom(); }
+function resetCurrentMonth() {
+  if (!confirm('今月の入力値（両アカウント）を 0 にリセットします。\n履歴と目標値は維持されます。よろしいですか？')) return;
+  ACCOUNTS.forEach(a => {
+    DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { state[a].values[i.key] = 0; }));
+  });
+  saveLocal();
+  renderAll();
+  pushRoom();
+}
+function copyShareLink() {
+  const url = location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('共有リンクをコピーしました', 'success');
+  }).catch(() => {
+    prompt('このURLを共有してください:', url);
+  });
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => { t.className = 'toast ' + type; }, 2200);
+}
+
+document.getElementById('acc1NameInput').addEventListener('input', e => onAccountNameChange('acc1', e.target.value));
+document.getElementById('acc2NameInput').addEventListener('input', e => onAccountNameChange('acc2', e.target.value));
+
+initSync();
+</script>
+</body>
+</html>
