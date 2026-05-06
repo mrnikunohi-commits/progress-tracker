@@ -883,9 +883,10 @@ function getTarget(key) {
 }
 
 /* ==========================================================================
-   共有同期
+   共有同期（JSONBin.io）
    ========================================================================== */
-const API_BASE = 'https://jsonblob.com/api/jsonBlob';
+const API_BASE = 'https://api.jsonbin.io/v3/b';
+const API_KEY = '$2a$10$2mX558aCXaBUL7/hexaKfOgCqyp/..eBBfmIaVFBWCfY/E5RCzEre';
 let roomId = null;
 let pollTimer = null;
 
@@ -904,11 +905,16 @@ async function createRoom() {
   try {
     const res = await fetch(API_BASE, {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+      headers: {
+        'Content-Type':'application/json',
+        'X-Master-Key': API_KEY,
+        'X-Bin-Private': 'true',
+      },
       body: JSON.stringify(state),
     });
-    const loc = res.headers.get('Location') || '';
-    const id = loc.split('/').pop();
+    if (!res.ok) throw new Error('Create failed: ' + res.status);
+    const data = await res.json();
+    const id = (data.metadata && data.metadata.id) || '';
     if (!id) throw new Error('No ID');
     roomId = id;
     setRoomIdHash(id);
@@ -929,21 +935,24 @@ async function fetchRoom(silent = false) {
   if (!roomId) return;
   if (!silent) setSyncStatus('syncing', '取得中...');
   try {
-    const res = await fetch(API_BASE + '/' + roomId);
-    if (!res.ok) throw new Error('fetch failed');
+    const res = await fetch(API_BASE + '/' + roomId + '/latest', {
+      headers: { 'X-Master-Key': API_KEY },
+    });
+    if (!res.ok) throw new Error('fetch failed: ' + res.status);
     const data = await res.json();
-    if (data) {
+    const record = data.record || data;
+    if (record) {
       // 旧フォーマット移行
-      if (data.values && !data.acc1) {
+      if (record.values && !record.acc1) {
         state = {
           names: { acc1: 'アカウント1', acc2: 'アカウント2' },
-          acc1: { values: data.values },
+          acc1: { values: record.values },
           acc2: { values: {} },
           targets: {},
           archives: [],
         };
       } else {
-        state = data;
+        state = record;
       }
       ensureStateShape();
       saveLocal();
@@ -962,10 +971,13 @@ async function pushRoom() {
   try {
     const res = await fetch(API_BASE + '/' + roomId, {
       method:'PUT',
-      headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+      headers:{
+        'Content-Type':'application/json',
+        'X-Master-Key': API_KEY,
+      },
       body: JSON.stringify(state),
     });
-    if (!res.ok) throw new Error('push failed');
+    if (!res.ok) throw new Error('push failed: ' + res.status);
     setSyncStatus('ok', '共有中');
     showToast('保存しました', 'success');
   } catch (e) {
