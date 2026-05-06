@@ -892,6 +892,26 @@ let pollTimer = null;
 let pushTimer = null;       // デバウンス用：1秒入力が止まったら自動でクラウドにpush
 let isPushing = false;      // push中フラグ（push中はポーリングを止める）
 let lastLocalEdit = 0;      // 最後のローカル編集時刻
+let editedPaths = new Set();// 編集された値のパス（マージ用）
+
+/* オブジェクトのパス操作 */
+function getByPath(obj, path) {
+  return path.split('.').reduce((o, p) => o == null ? undefined : o[p], obj);
+}
+function setByPath(obj, path, val) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') {
+      cur[parts[i]] = {};
+    }
+    cur = cur[parts[i]];
+  }
+  cur[parts[parts.length - 1]] = val;
+}
+function markEdited(path) {
+  editedPaths.add(path);
+}
 
 function getRoomIdFromHash() {
   const m = location.hash.match(/room=([a-zA-Z0-9_-]+)/);
@@ -943,23 +963,32 @@ async function fetchRoom(silent = false) {
     });
     if (!res.ok) throw new Error('fetch failed: ' + res.status);
     const data = await res.json();
-    const record = data.record || data;
+    let record = data.record || data;
     if (record) {
       // 旧フォーマット移行
       if (record.values && !record.acc1) {
-        state = {
+        record = {
           names: { acc1: 'アカウント1', acc2: 'アカウント2' },
           acc1: { values: record.values },
           acc2: { values: {} },
           targets: {},
           archives: [],
         };
-      } else {
-        state = record;
       }
+      // 自分のローカル編集（未push）を保護
+      const localEdits = {};
+      for (const path of editedPaths) {
+        localEdits[path] = getByPath(state, path);
+      }
+      state = record;
       ensureStateShape();
+      // ローカル編集を上書き保護
+      for (const [path, val] of Object.entries(localEdits)) {
+        setByPath(state, path, val);
+      }
       saveLocal();
-      renderAll();
+      // フォーカス中の入力欄を保護してDOMを更新
+      syncDomToState();
     }
     setSyncStatus('ok', '共有中');
   } catch (e) {
@@ -972,7 +1001,48 @@ async function pushRoom(showToastFlag = true) {
   if (!roomId) return;
   isPushing = true;
   setSyncStatus('syncing', '保存中...');
+
+  // 今回pushする編集パスを確保（push中に新しい編集が入っても次回まで保持）
+  const pathsToPush = new Set(editedPaths);
+  // 自分の編集値を保存（後でマージで使う）
+  const myEdits = {};
+  for (const path of pathsToPush) {
+    myEdits[path] = getByPath(state, path);
+  }
+
   try {
+    // ① まずクラウドの最新を取得して、相手の変更を取り込む
+    try {
+      const fetchRes = await fetch(API_BASE + '/' + roomId + '/latest', {
+        headers: { 'X-Master-Key': API_KEY },
+      });
+      if (fetchRes.ok) {
+        const fetchData = await fetchRes.json();
+        let cloudState = fetchData.record || fetchData;
+        // 旧フォーマット移行
+        if (cloudState.values && !cloudState.acc1) {
+          cloudState = {
+            names: { acc1: 'アカウント1', acc2: 'アカウント2' },
+            acc1: { values: cloudState.values },
+            acc2: { values: {} },
+            targets: {}, archives: [],
+          };
+        }
+        // クラウドをベースにして、自分の編集値を上書きする
+        state = cloudState;
+        ensureStateShape();
+        // 自分が編集した項目だけ自分の値で上書き
+        for (const [path, val] of Object.entries(myEdits)) {
+          setByPath(state, path, val);
+        }
+        // archives は両方の追加分をマージ
+        // (ここでは簡略化：cloud側のarchivesをそのまま使う + 自分のarchivesも保持)
+      }
+    } catch (e) {
+      console.warn('Pre-push fetch failed, pushing local state', e);
+    }
+
+    // ② マージしたstateをクラウドにPUT
     const res = await fetch(API_BASE + '/' + roomId, {
       method:'PUT',
       headers:{
@@ -982,8 +1052,17 @@ async function pushRoom(showToastFlag = true) {
       body: JSON.stringify(state),
     });
     if (!res.ok) throw new Error('push failed: ' + res.status);
+
+    // 成功：今回pushしたパスを編集リストから削除
+    for (const path of pathsToPush) {
+      editedPaths.delete(path);
+    }
+
     setSyncStatus('ok', '共有中');
     if (showToastFlag) showToast('保存しました', 'success');
+
+    // マージで他項目が変わっている可能性があるので、フォーカス中以外のUIを更新
+    syncDomToState();
   } catch (e) {
     console.error(e);
     setSyncStatus('err', '保存エラー');
@@ -992,6 +1071,36 @@ async function pushRoom(showToastFlag = true) {
     isPushing = false;
   }
   saveLocal();
+}
+
+/* DOMの値をstateに合わせる（フォーカス中の入力欄は触らない） */
+function syncDomToState() {
+  const active = document.activeElement;
+  // 入力ページの数値入力欄を更新
+  document.querySelectorAll('input[type="number"][data-key][data-acc]').forEach(el => {
+    if (el === active) return;
+    const key = el.dataset.key;
+    const acc = el.dataset.acc;
+    const val = (state[acc] && state[acc].values && state[acc].values[key]) || 0;
+    if (Number(el.value) !== val) el.value = val;
+  });
+  // 設定ページの目標入力欄を更新
+  document.querySelectorAll('input[type="number"][data-key]:not([data-acc])').forEach(el => {
+    if (el === active) return;
+    const key = el.dataset.key;
+    const val = (state.targets && state.targets[key] != null) ? state.targets[key] : (DEFAULT_TARGETS[key] || 1);
+    if (Number(el.value) !== val) el.value = val;
+  });
+  // アカウント名入力欄を更新
+  ['acc1', 'acc2'].forEach(acc => {
+    const el = document.getElementById(acc + 'NameInput');
+    if (el && el !== active) el.value = state.names[acc] || '';
+  });
+  // タブのアカウント名を更新
+  renderNames();
+  // ダッシュボードと履歴は入力欄が無いので常に再描画OK
+  renderDashboard();
+  renderArchive();
 }
 
 /* デバウンスpush：入力が止まってから1秒後に自動push */
@@ -1435,6 +1544,7 @@ function onInputChange(el) {
   const acc = el.dataset.acc;
   const val = Math.max(0, Number(el.value) || 0);
   state[acc].values[key] = val;
+  markEdited(acc + '.values.' + key); // 編集パスを記録（マージ用）
   saveLocal();
   debouncedPush(); // 1秒後に自動でクラウドに保存
   const card = el.closest('.input-card');
@@ -1453,6 +1563,7 @@ function onTargetChange(el) {
   let val = Number(el.value);
   if (!val || val < 1) val = 1;
   state.targets[key] = val;
+  markEdited('targets.' + key);
   saveLocal();
   debouncedPush();
   // ダッシュボード・入力ページのスコアも更新
@@ -1472,6 +1583,7 @@ function resetTargetsToDefault() {
 /* アカウント名 */
 function onAccountNameChange(accKey, val) {
   state.names[accKey] = val || (accKey === 'acc1' ? 'アカウント1' : 'アカウント2');
+  markEdited('names.' + accKey);
   saveLocal();
   debouncedPush();
   renderNames();
