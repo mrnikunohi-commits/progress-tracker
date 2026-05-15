@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>業績給 進捗トラッカー（2アカウント・履歴・設定対応）</title>
+<title>業績給 進捗トラッカー（マメ太アカウント）</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -603,6 +603,31 @@
     .account-header input.acc-name { width: 100%; }
     .archive-card { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ランク昇格目標バッジ */
+  .input-row .rankup-target {
+    background: #fff4e0;
+    color: #c9760a;
+    border: 1px solid #ffd9a0;
+    font-weight: 700;
+  }
+  .input-row .rankup-target.cleared {
+    background: #e6f9f0;
+    color: #0e8a5f;
+    border-color: #a8e6cf;
+  }
+  /* ランク昇格サマリー（入力ページ上部） */
+  .rankup-summary {
+    background: linear-gradient(135deg, #fff4e0, #ffe9c7);
+    border-left: 4px solid #f5af19;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: #2c3e50;
+    line-height: 1.7;
+  }
+  .rankup-summary b { color: #c9760a; }
 </style>
 </head>
 <body>
@@ -628,7 +653,7 @@
 
   <div class="header">
     <h1>業績給 進捗トラッカー</h1>
-    <p>2アカウント運用 / 1,000点満点 / 月次アーカイブ・目標カスタマイズ対応</p>
+    <p>マメ太アカウント / 1,000点満点 / 月次アーカイブ・目標カスタマイズ対応</p>
   </div>
 
   <!-- 共有バー -->
@@ -647,8 +672,7 @@
   <!-- タブ -->
   <div class="tabs">
     <div class="tab active" data-page="dashboard" onclick="switchPage('dashboard')">📊 ダッシュボード</div>
-    <div class="tab" data-page="acc1" onclick="switchPage('acc1')">✏️ <span id="tabAcc1Name">アカウント1</span></div>
-    <div class="tab" data-page="acc2" onclick="switchPage('acc2')">✏️ <span id="tabAcc2Name">アカウント2</span></div>
+    <div class="tab" data-page="account" onclick="switchPage('account')">✏️ <span id="tabAccName">マメ太</span></div>
     <div class="tab" data-page="archive" onclick="switchPage('archive')">📁 履歴</div>
     <div class="tab" data-page="settings" onclick="switchPage('settings')">⚙️ 設定</div>
   </div>
@@ -657,7 +681,7 @@
   <div class="page active" id="page-dashboard">
     <div class="summary">
       <div class="summary-card">
-        <div class="label">合計スコア / 達成度（2アカウント合算）</div>
+        <div class="label">スコア / 達成度（マメ太アカウント）</div>
         <div class="value"><span id="totalScore">0</span> <span style="font-size:16px;color:#95a5a6;">/ 1000点</span></div>
         <div class="sub">達成度 <span id="totalPercent">0</span>%</div>
         <div class="total-bar-container">
@@ -667,6 +691,7 @@
       <div class="summary-card" style="text-align:center;">
         <div class="label">現在の評価</div>
         <div style="margin-top:6px;"><span class="rank-badge rank-D" id="rankBadge">D</span></div>
+        <div class="sub" id="rankUpHint" style="margin-top:8px;"></div>
       </div>
       <div class="summary-card" style="text-align:center;">
         <div class="label">業績給</div>
@@ -679,39 +704,23 @@
     <div class="categories" id="categoriesArea"></div>
   </div>
 
-  <!-- アカウント1 -->
-  <div class="page" id="page-acc1">
+  <!-- マメ太アカウント -->
+  <div class="page" id="page-account">
     <div class="input-section">
       <div class="account-header">
         <div class="title-area">
-          <div class="acc-icon">A1</div>
-          <input type="text" class="acc-name" id="acc1NameInput" placeholder="アカウント1の名前">
+          <div class="acc-icon">M</div>
+          <input type="text" class="acc-name" id="accNameInput" placeholder="アカウント名">
         </div>
-        <div class="acc-score" id="acc1ScoreDisplay">単独スコア: 0 / 1000点</div>
+        <div class="acc-score" id="accScoreDisplay">スコア: 0 / 1000点</div>
+      </div>
+      <div class="rankup-summary" id="rankUpSummary">
+        📊 実績を入力すると、ここに現在のランクと「次のランクまであと何点か」が表示されます。
       </div>
       <div class="input-intro">
-        💡 <b>アカウント1の単月実績</b>を数字で入力してください。<br>
-        2アカウントの合計が「ダッシュボード」に反映されます。
+        💡 <b>今月の実績</b>を数字で入力してください。各項目に <b>「単独目標」</b>（達成度100%の基準）と <b>「次のランクまでの目安値」</b> を表示しています。
       </div>
-      <div id="acc1InputArea"></div>
-    </div>
-  </div>
-
-  <!-- アカウント2 -->
-  <div class="page" id="page-acc2">
-    <div class="input-section">
-      <div class="account-header" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
-        <div class="title-area">
-          <div class="acc-icon">A2</div>
-          <input type="text" class="acc-name" id="acc2NameInput" placeholder="アカウント2の名前">
-        </div>
-        <div class="acc-score" id="acc2ScoreDisplay">単独スコア: 0 / 1000点</div>
-      </div>
-      <div class="input-intro">
-        💡 <b>アカウント2の単月実績</b>を数字で入力してください。<br>
-        2アカウントの合計が「ダッシュボード」に反映されます。
-      </div>
-      <div id="acc2InputArea"></div>
+      <div id="accInputArea"></div>
     </div>
   </div>
 
@@ -721,7 +730,7 @@
       <div class="archive-controls">
         <div class="text">
           📅 <b>今月の評価を確定して保存します。</b><br>
-          現在の入力値が「履歴」として記録され、両アカウントの入力欄が0にリセットされます（目標値は維持されます）。
+          現在の入力値が「履歴」として記録され、入力欄が0にリセットされます（目標値は維持されます）。
         </div>
         <button onclick="archiveCurrentMonth()">今月をアーカイブ</button>
       </div>
@@ -734,8 +743,8 @@
     <div class="settings-section">
       <div class="settings-intro">
         ⚙️ <b>各項目の月間目標を変更できます。</b><br>
-        変更しても入力済みの実績データは保持され、新しい目標で達成度が再計算されます。<br>
-        ここで設定する目標は <b>「アカウント1つあたりの月間目標」</b> です。ダッシュボードでは2アカウント合算で評価されます（合算目標 = 設定値 × 2）。
+        変更しても入力済みの実績データは保持され、新しい目標で達成度・ランク昇格目安が再計算されます。<br>
+        ここで設定する目標が <b>「単独目標（達成度100%の基準）」</b> になります。
       </div>
       <div id="settingsArea"></div>
       <div style="text-align:center; margin-top:20px;">
@@ -844,42 +853,161 @@ const DEFAULT_CATEGORIES = [
   },
 ];
 const TOTAL_MAX = 1000;
-const ACCOUNTS = ['acc1', 'acc2'];
+/* 6カテゴリの配点合計（＝実際に到達できる最大スコア）。満点 TOTAL_MAX と一致しない場合に備えて算出する */
+const CATEGORY_MAX_SUM = DEFAULT_CATEGORIES.reduce((a, c) => a + c.max, 0);
+/* 全項目を満たした時に到達できる最大の達成度(%) */
+const MAX_ACHIEVABLE_PCT = (CATEGORY_MAX_SUM / TOTAL_MAX) * 100;
 
 /* デフォルト目標マップ */
 const DEFAULT_TARGETS = {};
 DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { DEFAULT_TARGETS[i.key] = i.target; }));
 
-/* 状態 */
+/* キー → 入力項目定義の逆引きマップ */
+const INPUT_BY_KEY = {};
+DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { INPUT_BY_KEY[i.key] = i; }));
+
+/* 評価ランクの基準（達成度% → ランク・業績給） */
+const RANK_TIERS = [
+  { rank: 'D', min: 0,  salary: 5000 },
+  { rank: 'C', min: 55, salary: 15000 },
+  { rank: 'B', min: 70, salary: 28000 },
+  { rank: 'A', min: 85, salary: 40000 },
+  { rank: 'S', min: 95, salary: 50000 },
+];
+
+/* 状態（マメ太アカウント単独運用） */
 let state = {
-  names: { acc1: 'アカウント1', acc2: 'アカウント2' },
-  acc1: { values: {} },
-  acc2: { values: {} },
-  targets: {},     // ユーザー上書きの目標値。ない場合はデフォルトを使用
-  archives: [],    // 月次アーカイブ
+  name: 'マメ太',
+  values: {},
+  targets: {},        // ユーザー上書きの目標値。ない場合はデフォルトを使用
+  archives: [],       // 月次アーカイブ
   passwordHash: null, // パスワードのSHA-256ハッシュ。null=未設定
 };
 let isAuthenticated = false;
 
 function ensureStateShape() {
-  if (!state.names) state.names = { acc1: 'アカウント1', acc2: 'アカウント2' };
-  ACCOUNTS.forEach(a => {
-    if (!state[a]) state[a] = { values: {} };
-    if (!state[a].values) state[a].values = {};
-    DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
-      if (typeof state[a].values[i.key] !== 'number') state[a].values[i.key] = 0;
-    }));
-  });
-  if (!state.targets) state.targets = {};
+  if (!state || typeof state !== 'object') state = {};
+  if (typeof state.name !== 'string' || !state.name) state.name = 'マメ太';
+  if (!state.values || typeof state.values !== 'object') state.values = {};
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    if (typeof state.values[i.key] !== 'number') state.values[i.key] = 0;
+  }));
+  if (!state.targets || typeof state.targets !== 'object') state.targets = {};
   if (!Array.isArray(state.archives)) state.archives = [];
+  if (state.passwordHash === undefined) state.passwordHash = null;
 }
 
-/* 目標値取得 */
-function getTarget(key) {
-  if (state.targets && state.targets[key] != null && !isNaN(state.targets[key])) {
-    return state.targets[key];
-  }
+/* 目標値取得（targetsOverride を渡せばその目標、無ければ現在の state.targets を使用） */
+function targetOf(key, targetsOverride) {
+  const t = targetsOverride || state.targets;
+  if (t && t[key] != null && !isNaN(t[key])) return Number(t[key]);
   return DEFAULT_TARGETS[key] || 1;
+}
+/* 旧名 getTarget の互換エイリアス */
+function getTarget(key) { return targetOf(key); }
+
+/* 値オブジェクトの合計（移行時のアカウント判定に使用） */
+function sumValues(values) {
+  if (!values || typeof values !== 'object') return 0;
+  return Object.values(values).reduce((a, v) => a + (Number(v) || 0), 0);
+}
+
+/* ----------------------------------------------------------------------
+   データ移行：旧2アカウント形式 → マメ太単独形式
+   （あさアカウントを切り離し、マメ太のデータだけを引き継ぐ）
+   ---------------------------------------------------------------------- */
+function migrateArchives(archives, pick) {
+  if (!Array.isArray(archives)) return [];
+  return archives.map(ar => {
+    if (!ar || typeof ar !== 'object') return null;
+    // すでに単独形式
+    if (ar.values && !ar.acc1 && !ar.acc2) {
+      return {
+        id: ar.id,
+        label: ar.label || ar.id,
+        archivedAt: ar.archivedAt || '',
+        name: ar.name || 'マメ太',
+        values: { ...ar.values },
+        targets: ar.targets ? { ...ar.targets } : {},
+        summary: ar.summary || computeSummary(ar.values || {}, ar.targets || {}),
+      };
+    }
+    // 2アカウント形式のアーカイブ → マメ太分を抽出
+    let p = pick;
+    if (!p) {
+      const n1 = (ar.names && ar.names.acc1 || '').toString();
+      const n2 = (ar.names && ar.names.acc2 || '').toString();
+      if (n1.includes('マメ太')) p = 'acc1';
+      else if (n2.includes('マメ太')) p = 'acc2';
+      else if (n1.includes('あさ')) p = 'acc2';
+      else if (n2.includes('あさ')) p = 'acc1';
+      else p = sumValues(ar.acc2 && ar.acc2.values) > sumValues(ar.acc1 && ar.acc1.values) ? 'acc2' : 'acc1';
+    }
+    const picked = ar[p] || { values: {} };
+    const vals = picked.values || {};
+    const tgts = ar.targets || {};
+    return {
+      id: ar.id,
+      label: ar.label || ar.id,
+      archivedAt: ar.archivedAt || '',
+      name: (ar.names && ar.names[p]) || 'マメ太',
+      values: { ...vals },
+      targets: { ...tgts },
+      summary: computeSummary(vals, tgts),
+    };
+  }).filter(Boolean);
+}
+
+function migrateRecord(record) {
+  if (!record || typeof record !== 'object') return null;
+
+  // すでにマメ太単独形式（acc1/acc2/names を持たない）
+  if (record.values && !record.acc1 && !record.acc2 && !record.names) {
+    return {
+      name: record.name || 'マメ太',
+      values: { ...record.values },
+      targets: record.targets ? { ...record.targets } : {},
+      archives: migrateArchives(record.archives || []),
+      passwordHash: record.passwordHash || null,
+      _legacy: record._legacy,
+    };
+  }
+
+  // 旧2アカウント形式 → マメ太アカウントを抽出
+  if (record.acc1 || record.acc2 || record.names) {
+    const names = record.names || {};
+    const n1 = (names.acc1 || '').toString();
+    const n2 = (names.acc2 || '').toString();
+    let pick = 'acc1';
+    if (n1.includes('マメ太')) pick = 'acc1';
+    else if (n2.includes('マメ太')) pick = 'acc2';
+    else if (n1.includes('あさ')) pick = 'acc2';
+    else if (n2.includes('あさ')) pick = 'acc1';
+    else {
+      const s1 = sumValues(record.acc1 && record.acc1.values);
+      const s2 = sumValues(record.acc2 && record.acc2.values);
+      pick = s2 > s1 ? 'acc2' : 'acc1';
+    }
+    const picked = record[pick] || { values: {} };
+    return {
+      name: (names[pick] && names[pick].toString()) || 'マメ太',
+      values: { ...(picked.values || {}) },
+      targets: record.targets ? { ...record.targets } : {},
+      archives: migrateArchives(record.archives || [], pick),
+      passwordHash: record.passwordHash || null,
+      // 念のため移行前の2アカウントデータをまるごと保管（万一の復元用）
+      _legacy: {
+        migratedAt: new Date().toISOString(),
+        pickedAccount: pick,
+        names: names,
+        acc1: record.acc1 || null,
+        acc2: record.acc2 || null,
+        archives: record.archives || [],
+      },
+    };
+  }
+
+  return null;
 }
 
 /* ==========================================================================
@@ -965,16 +1093,9 @@ async function fetchRoom(silent = false) {
     const data = await res.json();
     let record = data.record || data;
     if (record) {
-      // 旧フォーマット移行
-      if (record.values && !record.acc1) {
-        record = {
-          names: { acc1: 'アカウント1', acc2: 'アカウント2' },
-          acc1: { values: record.values },
-          acc2: { values: {} },
-          targets: {},
-          archives: [],
-        };
-      }
+      // どのフォーマットでもマメ太単独形式へ移行
+      const migrated = migrateRecord(record);
+      if (migrated) record = migrated;
       // 自分のローカル編集（未push）を保護
       const localEdits = {};
       for (const path of editedPaths) {
@@ -1019,15 +1140,9 @@ async function pushRoom(showToastFlag = true) {
       if (fetchRes.ok) {
         const fetchData = await fetchRes.json();
         let cloudState = fetchData.record || fetchData;
-        // 旧フォーマット移行
-        if (cloudState.values && !cloudState.acc1) {
-          cloudState = {
-            names: { acc1: 'アカウント1', acc2: 'アカウント2' },
-            acc1: { values: cloudState.values },
-            acc2: { values: {} },
-            targets: {}, archives: [],
-          };
-        }
+        // どのフォーマットでもマメ太単独形式へ移行
+        const migratedCloud = migrateRecord(cloudState);
+        if (migratedCloud) cloudState = migratedCloud;
         // クラウドをベースにして、自分の編集値を上書きする
         state = cloudState;
         ensureStateShape();
@@ -1035,8 +1150,6 @@ async function pushRoom(showToastFlag = true) {
         for (const [path, val] of Object.entries(myEdits)) {
           setByPath(state, path, val);
         }
-        // archives は両方の追加分をマージ
-        // (ここでは簡略化：cloud側のarchivesをそのまま使う + 自分のarchivesも保持)
       }
     } catch (e) {
       console.warn('Pre-push fetch failed, pushing local state', e);
@@ -1076,28 +1189,27 @@ async function pushRoom(showToastFlag = true) {
 /* DOMの値をstateに合わせる（フォーカス中の入力欄は触らない） */
 function syncDomToState() {
   const active = document.activeElement;
-  // 入力ページの数値入力欄を更新
-  document.querySelectorAll('input[type="number"][data-key][data-acc]').forEach(el => {
+  // 入力ページの実績入力欄を更新
+  document.querySelectorAll('input.val-input').forEach(el => {
     if (el === active) return;
     const key = el.dataset.key;
-    const acc = el.dataset.acc;
-    const val = (state[acc] && state[acc].values && state[acc].values[key]) || 0;
+    const val = state.values[key] || 0;
     if (Number(el.value) !== val) el.value = val;
   });
   // 設定ページの目標入力欄を更新
-  document.querySelectorAll('input[type="number"][data-key]:not([data-acc])').forEach(el => {
+  document.querySelectorAll('input.tgt-input').forEach(el => {
     if (el === active) return;
     const key = el.dataset.key;
-    const val = (state.targets && state.targets[key] != null) ? state.targets[key] : (DEFAULT_TARGETS[key] || 1);
+    const val = targetOf(key);
     if (Number(el.value) !== val) el.value = val;
   });
   // アカウント名入力欄を更新
-  ['acc1', 'acc2'].forEach(acc => {
-    const el = document.getElementById(acc + 'NameInput');
-    if (el && el !== active) el.value = state.names[acc] || '';
-  });
+  const nameEl = document.getElementById('accNameInput');
+  if (nameEl && nameEl !== active) nameEl.value = state.name || '';
   // タブのアカウント名を更新
   renderNames();
+  // ランク昇格バッジ・スコア表示を更新（フォーカスは保持）
+  refreshRankUpDisplay();
   // ダッシュボードと履歴は入力欄が無いので常に再描画OK
   renderDashboard();
   renderArchive();
@@ -1129,24 +1241,17 @@ function startPolling() {
 }
 
 function saveLocal() {
-  try { localStorage.setItem('progress_state_v3', JSON.stringify(state)); } catch(e){}
+  try { localStorage.setItem('progress_state_v4', JSON.stringify(state)); } catch(e){}
 }
 function loadLocal() {
   try {
-    const s3 = localStorage.getItem('progress_state_v3');
-    if (s3) { state = JSON.parse(s3); return; }
-    const s2 = localStorage.getItem('progress_state_v2');
-    if (s2) { state = JSON.parse(s2); return; }
-    const s1 = localStorage.getItem('progress_state');
-    if (s1) {
-      const o = JSON.parse(s1);
-      state = {
-        names: { acc1: 'アカウント1', acc2: 'アカウント2' },
-        acc1: { values: o.values || {} },
-        acc2: { values: {} },
-        targets: {},
-        archives: [],
-      };
+    const keys = ['progress_state_v4', 'progress_state_v3', 'progress_state_v2', 'progress_state'];
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const migrated = migrateRecord(JSON.parse(raw));
+        if (migrated) { state = migrated; break; }
+      }
     }
   } catch(e){}
   ensureStateShape();
@@ -1312,48 +1417,61 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ==========================================================================
    スコア計算
    ========================================================================== */
-function computeCategoryScoreCombined(c, valuesA1, valuesA2, targetsOverride) {
-  const v1 = valuesA1 || state.acc1.values;
-  const v2 = valuesA2 || state.acc2.values;
+function computeCategoryScore(c, values, targetsOverride) {
+  const vals = values || state.values;
   let score = 0;
   c.inputs.forEach(i => {
-    const t = targetsOverride && targetsOverride[i.key] != null ? targetsOverride[i.key] : getTarget(i.key);
-    const sum = (v1[i.key] || 0) + (v2[i.key] || 0);
-    const ratio = Math.min(1, sum / (t * 2));
+    const v = (vals && vals[i.key]) || 0;
+    const ratio = Math.min(1, v / targetOf(i.key, targetsOverride));
     score += ratio * i.weight;
   });
   const weightSum = c.inputs.reduce((a, x) => a + x.weight, 0);
   return (score / weightSum) * c.max;
 }
 
-function computeCategoryScoreSingle(c, accKey) {
-  let score = 0;
-  c.inputs.forEach(i => {
-    const v = state[accKey].values[i.key] || 0;
-    const ratio = Math.min(1, v / getTarget(i.key));
-    score += ratio * i.weight;
-  });
-  const weightSum = c.inputs.reduce((a, x) => a + x.weight, 0);
-  return (score / weightSum) * c.max;
-}
-
-function computeTotalCombined() {
+function computeTotal(values, targetsOverride) {
   let total = 0;
-  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScoreCombined(c));
-  return total;
-}
-function computeTotalSingle(accKey) {
-  let total = 0;
-  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScoreSingle(c, accKey));
+  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScore(c, values, targetsOverride));
   return total;
 }
 
 function rankFromPct(pct) {
-  if (pct >= 95) return { rank:'S', salary:50000 };
-  if (pct >= 85) return { rank:'A', salary:40000 };
-  if (pct >= 70) return { rank:'B', salary:28000 };
-  if (pct >= 55) return { rank:'C', salary:15000 };
-  return { rank:'D', salary:5000 };
+  let cur = RANK_TIERS[0];
+  for (const t of RANK_TIERS) { if (pct >= t.min) cur = t; }
+  return { rank: cur.rank, salary: cur.salary };
+}
+
+/* 現在の達成度から「一つ上のランク」の情報を返す。最高ランク(S)なら null */
+function nextRankInfo(pct) {
+  for (const t of RANK_TIERS) {
+    if (t.min > pct) return t;
+  }
+  return null;
+}
+
+/* values から サマリー（スコア・達成度・ランク・業績給）を計算 */
+function computeSummary(values, targetsOverride) {
+  const totalScore = computeTotal(values, targetsOverride);
+  const totalPercent = (totalScore / TOTAL_MAX) * 100;
+  const r = rankFromPct(totalPercent);
+  return { totalScore, totalPercent, rank: r.rank, salary: r.salary };
+}
+
+/* 「全項目をそろえて総合達成度 pct% にする」場合の、その項目の必要値（比例配分）。
+   全項目を達成率 p にすると総合達成度は p × MAX_ACHIEVABLE_PCT になるので、
+   総合 pct% にするには p = pct / MAX_ACHIEVABLE_PCT。 */
+function evenTargetForItem(key, pct) {
+  const p = pct / MAX_ACHIEVABLE_PCT;
+  return Math.ceil(targetOf(key) * p);
+}
+
+/* 「現実的に一つ上を狙えるランク」。配点の都合で到達不可能なランク
+   （例：カテゴリ配点合計が満点に届かない時の S ランク）しか残っていない場合は null。 */
+function practicalNextRank(pct) {
+  const nr = nextRankInfo(pct);
+  if (!nr) return null;
+  if (nr.min > MAX_ACHIEVABLE_PCT + 1e-9) return null;
+  return nr;
 }
 
 /* ==========================================================================
@@ -1362,14 +1480,23 @@ function rankFromPct(pct) {
 function renderDashboard() {
   const area = document.getElementById('categoriesArea');
   area.innerHTML = '';
+  const curTotal = computeTotal(state.values);
+  const curPct = (curTotal / TOTAL_MAX) * 100;
+  const nr = practicalNextRank(curPct);
+
   DEFAULT_CATEGORIES.forEach(c => {
-    const score = computeCategoryScoreCombined(c);
+    const score = computeCategoryScore(c, state.values);
     const pct = (score / c.max) * 100;
     const breakdownItems = c.inputs.map(i => {
-      const v1 = state.acc1.values[i.key] || 0;
-      const v2 = state.acc2.values[i.key] || 0;
-      const sum = v1 + v2;
-      return `<span>${i.label}: <b>${sum}</b>${i.unit} <span style="color:#95a5a6;">(${state.names.acc1.slice(0,6)}:${v1} + ${state.names.acc2.slice(0,6)}:${v2} / 目標${getTarget(i.key)*2}${i.unit})</span></span>`;
+      const v = state.values[i.key] || 0;
+      const tgt = targetOf(i.key);
+      let extra = '';
+      if (nr) {
+        const ru = evenTargetForItem(i.key, nr.min);
+        const ok = v >= ru;
+        extra = ` <span style="color:${ok ? '#0e8a5f' : '#c9760a'};">(${nr.rank}まで ${ru}${i.unit}${ok ? ' ✓' : ''})</span>`;
+      }
+      return `<span>${i.label}: <b>${v}</b>${i.unit} <span style="color:#95a5a6;">/ 目標${tgt}${i.unit}</span>${extra}</span>`;
     }).join('');
     const div = document.createElement('div');
     div.className = 'category';
@@ -1394,37 +1521,105 @@ function renderDashboard() {
     `;
     area.appendChild(div);
   });
-  const total = computeTotalCombined();
-  const totalPct = (total / TOTAL_MAX) * 100;
-  document.getElementById('totalScore').textContent = total.toFixed(0);
-  document.getElementById('totalPercent').textContent = totalPct.toFixed(1);
-  document.getElementById('totalBarFill').style.width = totalPct + '%';
-  const r = rankFromPct(totalPct);
+
+  document.getElementById('totalScore').textContent = curTotal.toFixed(0);
+  document.getElementById('totalPercent').textContent = curPct.toFixed(1);
+  document.getElementById('totalBarFill').style.width = curPct + '%';
+  const r = rankFromPct(curPct);
   const badge = document.getElementById('rankBadge');
   badge.textContent = r.rank;
   badge.className = 'rank-badge rank-' + r.rank;
   document.getElementById('salaryAmount').textContent = r.salary.toLocaleString();
+
+  // 「現在の評価」カードに、次ランクまでの残り点数を表示
+  const hint = document.getElementById('rankUpHint');
+  if (hint) {
+    if (nr) {
+      const need = (nr.min / 100) * TOTAL_MAX - curTotal;
+      hint.textContent = `${nr.rank}ランク（達成度${nr.min}%）まで あと ${Math.max(0, need).toFixed(0)}点`;
+    } else {
+      hint.textContent = (r.rank === 'S') ? '🏆 最高ランク達成中' : '🏆 現在の配点での最高到達ランク';
+    }
+  }
 }
 
-function renderInput(accKey) {
-  const areaId = accKey === 'acc1' ? 'acc1InputArea' : 'acc2InputArea';
-  const area = document.getElementById(areaId);
+/* 入力ページ上部「ランク昇格サマリー」を更新（DOM差し替えなし＝フォーカス保持） */
+function updateRankUpSummary(curTotal, curPct, nr) {
+  const box = document.getElementById('rankUpSummary');
+  if (!box) return;
+  const r = rankFromPct(curPct);
+  if (nr) {
+    const need = (nr.min / 100) * TOTAL_MAX - curTotal;
+    box.innerHTML = `📊 現在 <b>${r.rank}ランク</b>（達成度 ${curPct.toFixed(1)}% ／ ${curTotal.toFixed(0)}点）。`
+      + `<b>${nr.rank}ランク</b>（達成度 ${nr.min}%・業績給 ¥${nr.salary.toLocaleString()}）まで あと <b>${Math.max(0, need).toFixed(0)}点</b>。<br>`
+      + `各項目の <b>「${nr.rank}まで ◯◯」</b> は、全項目をそろえて ${nr.rank}ランクに届かせるための目安値です。`;
+  } else if (r.rank === 'S') {
+    box.innerHTML = `🏆 現在 <b>Sランク</b>（達成度 ${curPct.toFixed(1)}%）。最高ランクを達成中です。`;
+  } else {
+    box.innerHTML = `🏆 現在 <b>${r.rank}ランク</b>（達成度 ${curPct.toFixed(1)}%）。`
+      + `これは現在の配点で到達できる最高ランクです（6カテゴリの配点合計 ${CATEGORY_MAX_SUM}点 ＝ 達成度 ${MAX_ACHIEVABLE_PCT.toFixed(0)}% が上限）。`;
+  }
+}
+
+/* ランク昇格バッジ・スコア表示を、DOMを作り直さずに更新（入力中のフォーカスを保持） */
+function refreshRankUpDisplay() {
+  const curTotal = computeTotal(state.values);
+  const curPct = (curTotal / TOTAL_MAX) * 100;
+  const nr = practicalNextRank(curPct);
+  const scoreEl = document.getElementById('accScoreDisplay');
+  if (scoreEl) scoreEl.textContent = `スコア: ${curTotal.toFixed(0)} / 1000点`;
+  updateRankUpSummary(curTotal, curPct, nr);
+  document.querySelectorAll('.rankup-target').forEach(span => {
+    const key = span.dataset.key;
+    if (!key) return;
+    const item = INPUT_BY_KEY[key];
+    if (!item) return;
+    const v = state.values[key] || 0;
+    if (nr) {
+      const ru = evenTargetForItem(key, nr.min);
+      const cleared = v >= ru;
+      span.className = 'target rankup-target' + (cleared ? ' cleared' : '');
+      span.textContent = `${cleared ? '✓' : '⬆'} ${nr.rank}まで ${ru}${item.unit}`;
+    } else {
+      span.className = 'target rankup-target cleared';
+      span.textContent = '🏆 最高ランク';
+    }
+  });
+}
+
+function renderInput() {
+  const area = document.getElementById('accInputArea');
+  if (!area) return;
   area.innerHTML = '';
+  const curTotal = computeTotal(state.values);
+  const curPct = (curTotal / TOTAL_MAX) * 100;
+  const nr = practicalNextRank(curPct);
+  updateRankUpSummary(curTotal, curPct, nr);
+
   DEFAULT_CATEGORIES.forEach(c => {
-    const score = computeCategoryScoreSingle(c, accKey);
+    const score = computeCategoryScore(c, state.values);
     const card = document.createElement('div');
     card.className = 'input-card';
     let inputsHtml = '';
     c.inputs.forEach(i => {
-      const val = state[accKey].values[i.key] || 0;
-      const tgt = getTarget(i.key);
+      const val = state.values[i.key] || 0;
+      const tgt = targetOf(i.key);
+      let rankupHtml;
+      if (nr) {
+        const ru = evenTargetForItem(i.key, nr.min);
+        const cleared = val >= ru;
+        rankupHtml = `<span class="target rankup-target${cleared ? ' cleared' : ''}" data-key="${i.key}">${cleared ? '✓' : '⬆'} ${nr.rank}まで ${ru}${i.unit}</span>`;
+      } else {
+        rankupHtml = `<span class="target rankup-target cleared" data-key="${i.key}">🏆 最高ランク</span>`;
+      }
       inputsHtml += `
         <div class="input-row">
           <label>${i.label}</label>
-          <input type="number" min="0" step="1" value="${val}"
-            data-key="${i.key}" data-acc="${accKey}" oninput="onInputChange(this)">
+          <input type="number" min="0" step="1" value="${val}" class="val-input"
+            data-key="${i.key}" oninput="onInputChange(this)">
           <span class="unit">${i.unit}</span>
           <span class="target">単独目標 ${tgt}${i.unit}</span>
+          ${rankupHtml}
         </div>
       `;
     });
@@ -1442,9 +1637,8 @@ function renderInput(accKey) {
     `;
     area.appendChild(card);
   });
-  const total = computeTotalSingle(accKey);
-  const displayId = accKey === 'acc1' ? 'acc1ScoreDisplay' : 'acc2ScoreDisplay';
-  document.getElementById(displayId).textContent = `単独スコア: ${total.toFixed(0)} / 1000点`;
+  const scoreEl = document.getElementById('accScoreDisplay');
+  if (scoreEl) scoreEl.textContent = `スコア: ${curTotal.toFixed(0)} / 1000点`;
 }
 
 function renderSettings() {
@@ -1455,12 +1649,12 @@ function renderSettings() {
     card.className = 'settings-card';
     let rowsHtml = '';
     c.inputs.forEach(i => {
-      const cur = getTarget(i.key);
+      const cur = targetOf(i.key);
       const def = DEFAULT_TARGETS[i.key];
       rowsHtml += `
         <div class="settings-row">
           <label>${i.label} <span class="default">（初期値: ${def}${i.unit}）</span></label>
-          <input type="number" min="1" step="1" value="${cur}"
+          <input type="number" min="1" step="1" value="${cur}" class="tgt-input"
             data-key="${i.key}" oninput="onTargetChange(this)">
           <span class="unit">${i.unit}</span>
         </div>
@@ -1487,7 +1681,7 @@ function renderArchive() {
     return;
   }
   // 新しい順
-  const sorted = [...state.archives].sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
+  const sorted = [...state.archives].sort((a, b) => (b.archivedAt || '').localeCompare(a.archivedAt || ''));
   sorted.forEach(ar => {
     const r = ar.summary || {};
     const rankClass = 'rank-' + (r.rank || 'D');
@@ -1499,7 +1693,7 @@ function renderArchive() {
         <div class="ar-month-sub">${(ar.archivedAt||'').slice(0,10)} 確定</div>
       </div>
       <div class="ar-item">
-        <div class="lbl">合計スコア</div>
+        <div class="lbl">スコア</div>
         <div class="val">${(r.totalScore||0).toFixed(0)} / 1000</div>
       </div>
       <div class="ar-item">
@@ -1523,37 +1717,38 @@ function renderArchive() {
 }
 
 function renderNames() {
-  document.getElementById('tabAcc1Name').textContent = state.names.acc1 || 'アカウント1';
-  document.getElementById('tabAcc2Name').textContent = state.names.acc2 || 'アカウント2';
-  document.getElementById('acc1NameInput').value = state.names.acc1 || '';
-  document.getElementById('acc2NameInput').value = state.names.acc2 || '';
+  const n = state.name || 'マメ太';
+  const tab = document.getElementById('tabAccName');
+  if (tab) tab.textContent = n;
+  const el = document.getElementById('accNameInput');
+  if (el && el !== document.activeElement) el.value = n;
 }
 
 function renderAll() {
   renderNames();
   renderDashboard();
-  renderInput('acc1');
-  renderInput('acc2');
+  renderInput();
   renderArchive();
   renderSettings();
 }
 
-/* 入力変更 */
+/* 入力変更（DOMは作り直さず、フォーカスを保持したまま数値だけ更新） */
 function onInputChange(el) {
   const key = el.dataset.key;
-  const acc = el.dataset.acc;
   const val = Math.max(0, Number(el.value) || 0);
-  state[acc].values[key] = val;
-  markEdited(acc + '.values.' + key); // 編集パスを記録（マージ用）
+  state.values[key] = val;
+  markEdited('values.' + key); // 編集パスを記録（マージ用）
   saveLocal();
   debouncedPush(); // 1秒後に自動でクラウドに保存
+  // カテゴリスコアをその場で更新
   const card = el.closest('.input-card');
   const cat = DEFAULT_CATEGORIES.find(c => c.inputs.some(i => i.key === key));
   if (cat && card) {
-    card.querySelector('.cat-points .current').textContent = computeCategoryScoreSingle(cat, acc).toFixed(0);
+    const cur = card.querySelector('.cat-points .current');
+    if (cur) cur.textContent = computeCategoryScore(cat, state.values).toFixed(0);
   }
-  const displayId = acc === 'acc1' ? 'acc1ScoreDisplay' : 'acc2ScoreDisplay';
-  document.getElementById(displayId).textContent = `単独スコア: ${computeTotalSingle(acc).toFixed(0)} / 1000点`;
+  // ランク昇格バッジ・スコア・サマリーをその場で更新（フォーカス保持）
+  refreshRankUpDisplay();
   renderDashboard();
 }
 
@@ -1566,24 +1761,25 @@ function onTargetChange(el) {
   markEdited('targets.' + key);
   saveLocal();
   debouncedPush();
-  // ダッシュボード・入力ページのスコアも更新
+  // ダッシュボードと入力ページ（スコア・目標・昇格目安）を再計算
   renderDashboard();
-  renderInput('acc1');
-  renderInput('acc2');
+  renderInput();
 }
 
 function resetTargetsToDefault() {
   if (!confirm('すべての目標値を初期値に戻します。よろしいですか？\n（入力済みの実績データは保持されます）')) return;
   state.targets = {};
+  markEdited('targets');
   saveLocal();
+  debouncedPush();
   renderAll();
   showToast('目標を初期値に戻しました', 'success');
 }
 
 /* アカウント名 */
-function onAccountNameChange(accKey, val) {
-  state.names[accKey] = val || (accKey === 'acc1' ? 'アカウント1' : 'アカウント2');
-  markEdited('names.' + accKey);
+function onAccountNameChange(val) {
+  state.name = val || 'マメ太';
+  markEdited('name');
   saveLocal();
   debouncedPush();
   renderNames();
@@ -1593,10 +1789,7 @@ function onAccountNameChange(accKey, val) {
 /* アーカイブ操作 */
 function archiveCurrentMonth() {
   // 何も入力されていない場合は警告
-  let anyInput = false;
-  ACCOUNTS.forEach(a => DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
-    if ((state[a].values[i.key] || 0) > 0) anyInput = true;
-  })));
+  const anyInput = DEFAULT_CATEGORIES.some(c => c.inputs.some(i => (state.values[i.key] || 0) > 0));
   if (!anyInput) {
     if (!confirm('入力値がすべて0です。それでもアーカイブしますか？')) return;
   }
@@ -1610,27 +1803,20 @@ function archiveCurrentMonth() {
   while (state.archives.some(a => a.id === id)) {
     id = `${baseId}-${suffix++}`;
   }
-  const totalScore = computeTotalCombined();
-  const totalPercent = (totalScore / TOTAL_MAX) * 100;
-  const r = rankFromPct(totalPercent);
   const archive = {
     id,
     label: `${y}年${parseInt(m)}月`,
     archivedAt: now.toISOString(),
-    names: { ...state.names },
-    acc1: { values: { ...state.acc1.values } },
-    acc2: { values: { ...state.acc2.values } },
+    name: state.name,
+    values: { ...state.values },
     targets: { ...state.targets },
-    summary: {
-      totalScore, totalPercent,
-      rank: r.rank, salary: r.salary,
-    }
+    summary: computeSummary(state.values, state.targets),
   };
   state.archives.push(archive);
   // 入力値リセット
-  ACCOUNTS.forEach(a => DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
-    state[a].values[i.key] = 0;
-  })));
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { state.values[i.key] = 0; }));
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { markEdited('values.' + i.key); }));
+  markEdited('archives');
   saveLocal();
   pushRoom();
   renderAll();
@@ -1640,6 +1826,7 @@ function archiveCurrentMonth() {
 function deleteArchive(id) {
   if (!confirm('この履歴を削除します。よろしいですか？')) return;
   state.archives = state.archives.filter(a => a.id !== id);
+  markEdited('archives');
   saveLocal();
   pushRoom();
   renderArchive();
@@ -1649,12 +1836,11 @@ function deleteArchive(id) {
 function viewArchive(id) {
   const ar = state.archives.find(a => a.id === id);
   if (!ar) return;
-  // 詳細表示：アーカイブ時の目標で再計算
   let detailHtml = `<h2>${ar.label} の詳細</h2>`;
-  detailHtml += `<div style="font-size:12px;color:#7f8c9b;margin-bottom:14px;">確定日時: ${(ar.archivedAt||'').replace('T',' ').slice(0,16)}</div>`;
+  detailHtml += `<div style="font-size:12px;color:#7f8c9b;margin-bottom:14px;">確定日時: ${(ar.archivedAt||'').replace('T',' ').slice(0,16)} ／ アカウント: ${ar.name || 'マメ太'}</div>`;
   detailHtml += `<div style="display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
     <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
-      <div style="font-size:11px;color:#7f8c9b;">合計スコア</div>
+      <div style="font-size:11px;color:#7f8c9b;">スコア</div>
       <div style="font-size:22px;font-weight:700;">${(ar.summary.totalScore||0).toFixed(0)} / 1000</div>
     </div>
     <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
@@ -1674,24 +1860,22 @@ function viewArchive(id) {
     <thead>
       <tr style="background:#eef1f7;">
         <th style="padding:8px;text-align:left;">項目</th>
-        <th style="padding:8px;text-align:right;">${ar.names.acc1}</th>
-        <th style="padding:8px;text-align:right;">${ar.names.acc2}</th>
-        <th style="padding:8px;text-align:right;">合計</th>
-        <th style="padding:8px;text-align:right;">合算目標</th>
+        <th style="padding:8px;text-align:right;">実績</th>
+        <th style="padding:8px;text-align:right;">目標</th>
+        <th style="padding:8px;text-align:right;">達成率</th>
       </tr>
     </thead><tbody>`;
   DEFAULT_CATEGORIES.forEach(c => {
-    detailHtml += `<tr style="background:${c.iconColor}22;"><td colspan="5" style="padding:6px 8px;font-weight:700;">${c.name}</td></tr>`;
+    detailHtml += `<tr style="background:${c.iconColor}22;"><td colspan="4" style="padding:6px 8px;font-weight:700;">${c.name}</td></tr>`;
     c.inputs.forEach(i => {
-      const v1 = ar.acc1.values[i.key] || 0;
-      const v2 = ar.acc2.values[i.key] || 0;
+      const v = ar.values[i.key] || 0;
       const tgt = (ar.targets && ar.targets[i.key] != null) ? ar.targets[i.key] : (DEFAULT_TARGETS[i.key] || 1);
+      const rate = Math.min(100, (v / tgt) * 100);
       detailHtml += `<tr style="border-bottom:1px solid #eef1f7;">
         <td style="padding:6px 8px;">${i.label}</td>
-        <td style="padding:6px 8px;text-align:right;">${v1}${i.unit}</td>
-        <td style="padding:6px 8px;text-align:right;">${v2}${i.unit}</td>
-        <td style="padding:6px 8px;text-align:right;font-weight:700;">${v1+v2}${i.unit}</td>
-        <td style="padding:6px 8px;text-align:right;color:#95a5a6;">${tgt*2}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;font-weight:700;">${v}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;color:#95a5a6;">${tgt}${i.unit}</td>
+        <td style="padding:6px 8px;text-align:right;">${rate.toFixed(0)}%</td>
       </tr>`;
     });
   });
@@ -1710,8 +1894,7 @@ function switchPage(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   if (name === 'dashboard') renderDashboard();
-  if (name === 'acc1') renderInput('acc1');
-  if (name === 'acc2') renderInput('acc2');
+  if (name === 'account') renderInput();
   if (name === 'archive') renderArchive();
   if (name === 'settings') renderSettings();
 }
@@ -1720,10 +1903,11 @@ function switchPage(name) {
 function saveAndSync() { pushRoom(); }
 function manualRefresh() { fetchRoom(); }
 function resetCurrentMonth() {
-  if (!confirm('今月の入力値（両アカウント）を 0 にリセットします。\n履歴と目標値は維持されます。よろしいですか？')) return;
-  ACCOUNTS.forEach(a => {
-    DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { state[a].values[i.key] = 0; }));
-  });
+  if (!confirm('今月の入力値を 0 にリセットします。\n履歴と目標値は維持されます。よろしいですか？')) return;
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    state.values[i.key] = 0;
+    markEdited('values.' + i.key);
+  }));
   saveLocal();
   renderAll();
   pushRoom();
@@ -1744,8 +1928,7 @@ function showToast(msg, type='') {
   setTimeout(() => { t.className = 'toast ' + type; }, 2200);
 }
 
-document.getElementById('acc1NameInput').addEventListener('input', e => onAccountNameChange('acc1', e.target.value));
-document.getElementById('acc2NameInput').addEventListener('input', e => onAccountNameChange('acc2', e.target.value));
+document.getElementById('accNameInput').addEventListener('input', e => onAccountNameChange(e.target.value));
 
 initSync();
 </script>
