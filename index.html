@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>業績給 進捗トラッカー（マメ太アカウント）</title>
+<title>業績給 進捗トラッカー v3（1アカウント運用基準 / データ取得方法明示）</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -32,32 +32,20 @@
 
   /* 共有バー */
   .share-bar {
-    background: #2c3e50;
-    color: #fff;
+    background: #2c3e50; color: #fff;
     padding: 10px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; flex-wrap: wrap; gap: 10px;
   }
   .share-bar .room {
     background: rgba(255,255,255,0.15);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-family: monospace;
-    font-size: 11px;
+    padding: 4px 10px; border-radius: 6px;
+    font-family: monospace; font-size: 11px;
   }
   .share-bar button {
-    background: #38ef7d;
-    color: #1e3c72;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 14px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
+    background: #38ef7d; color: #1e3c72;
+    border: none; padding: 6px 14px; border-radius: 14px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
     transition: all 0.2s;
   }
   .share-bar button:hover { transform: translateY(-1px); background: #11998e; color: #fff; }
@@ -70,29 +58,17 @@
 
   /* タブ */
   .tabs {
-    display: flex;
-    background: #f8f9fc;
-    border-bottom: 2px solid #e3e8f0;
-    overflow-x: auto;
+    display: flex; background: #f8f9fc;
+    border-bottom: 2px solid #e3e8f0; overflow-x: auto;
   }
   .tab {
-    flex: 1;
-    min-width: 130px;
-    padding: 14px 14px;
-    text-align: center;
-    cursor: pointer;
-    font-weight: 600;
-    color: #7f8c9b;
-    font-size: 13px;
+    flex: 1; min-width: 130px;
+    padding: 14px 14px; text-align: center; cursor: pointer;
+    font-weight: 600; color: #7f8c9b; font-size: 13px;
     border-bottom: 3px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
+    transition: all 0.2s; white-space: nowrap;
   }
-  .tab.active {
-    color: #667eea;
-    border-bottom-color: #667eea;
-    background: #fff;
-  }
+  .tab.active { color: #667eea; border-bottom-color: #667eea; background: #fff; }
   .tab:hover:not(.active) { background: #eef1f7; }
 
   .page { display: none; }
@@ -101,54 +77,74 @@
   /* サマリー */
   .summary {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 16px;
     padding: 30px 40px;
     background: #f8f9fc;
     border-bottom: 2px solid #e3e8f0;
   }
   .summary-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    background: #fff; border-radius: 14px;
+    padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
   .summary-card .label {
-    font-size: 12px; color: #7f8c9b;
+    font-size: 11px; color: #7f8c9b;
     margin-bottom: 8px; letter-spacing: 1px;
   }
-  .summary-card .value { font-size: 32px; font-weight: 700; color: #2c3e50; }
+  .summary-card .value { font-size: 30px; font-weight: 700; color: #2c3e50; }
   .summary-card .sub { font-size: 12px; color: #95a5a6; margin-top: 4px; }
+  .summary-card .small-value { font-size: 22px; font-weight: 700; color: #2c3e50; }
   .total-bar-container {
-    margin-top: 14px; height: 18px;
+    margin-top: 12px; height: 16px;
     background: #e3e8f0; border-radius: 9px;
     overflow: hidden; position: relative;
   }
   .total-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #11998e, #38ef7d);
-    border-radius: 9px; width: 0%;
+    height: 100%; width: 0%;
+    border-radius: 9px;
     transition: width 1.2s cubic-bezier(0.25, 1, 0.5, 1);
-    box-shadow: 0 0 10px rgba(56, 239, 125, 0.5);
   }
+  .total-bar-fill.perf { background: linear-gradient(90deg, #11998e, #38ef7d); box-shadow: 0 0 10px rgba(56, 239, 125, 0.5); }
+  .total-bar-fill.hr   { background: linear-gradient(90deg, #2193b0, #6dd5ed); box-shadow: 0 0 10px rgba(33, 147, 176, 0.4); }
+  .total-bar-fill.total{ background: linear-gradient(90deg, #f5af19, #f12711); box-shadow: 0 0 10px rgba(245, 175, 25, 0.5); }
   .rank-badge {
     display: inline-block;
-    font-size: 52px; font-weight: 900; line-height: 1;
-    padding: 6px 20px; border-radius: 14px; color: #fff;
+    font-size: 48px; font-weight: 900; line-height: 1;
+    padding: 6px 18px; border-radius: 14px; color: #fff;
   }
   .rank-S { background: linear-gradient(135deg, #f5af19, #f12711); }
   .rank-A { background: linear-gradient(135deg, #11998e, #38ef7d); }
   .rank-B { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
   .rank-C { background: linear-gradient(135deg, #f7971e, #ffd200); color: #5a4500;}
   .rank-D { background: linear-gradient(135deg, #757F9A, #D7DDE8); color: #2c3e50;}
-  .salary-box { display: flex; align-items: baseline; gap: 6px; justify-content: center; }
-  .salary-box .yen { font-size: 18px; font-weight: 600; color: #7f8c9b; }
-  .salary-box .amount { font-size: 36px; font-weight: 900; color: #11998e; }
+  .salary-box { display: flex; align-items: baseline; gap: 4px; justify-content: center; }
+  .salary-box .yen { font-size: 16px; font-weight: 600; color: #7f8c9b; }
+  .salary-box .amount { font-size: 30px; font-weight: 900; color: #11998e; }
+
+  /* セクション見出し */
+  .section-heading {
+    margin: 8px 40px 0;
+    padding: 12px 18px;
+    border-radius: 12px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .section-heading .score-pill {
+    background: rgba(255,255,255,0.25);
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+  }
+  .section-heading.perf { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .section-heading.hr   { background: linear-gradient(135deg, #2193b0, #6dd5ed); color: #fff; }
 
   /* カテゴリ */
-  .categories { padding: 30px 40px; }
+  .categories { padding: 18px 40px 30px; }
   .category {
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     padding: 16px 18px;
     background: #fff;
     border: 2px solid #eef1f7;
@@ -163,10 +159,8 @@
     display: flex; align-items: center; gap: 10px;
   }
   .cat-title .icon {
-    width: 32px; height: 32px;
-    border-radius: 9px;
-    display: inline-flex;
-    align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 9px;
+    display: inline-flex; align-items: center; justify-content: center;
     color: #fff; font-size: 16px; font-weight: 700;
   }
   .cat-points {
@@ -181,8 +175,7 @@
     overflow: hidden; position: relative;
   }
   .progress-fill {
-    height: 100%; border-radius: 13px;
-    width: 0%;
+    height: 100%; border-radius: 13px; width: 0%;
     transition: width 1.5s cubic-bezier(0.25, 1, 0.5, 1);
     position: relative; overflow: hidden;
   }
@@ -204,13 +197,22 @@
     font-size: 11px; color: #667eea;
     margin-top: 6px;
     background: #f8f9fc;
-    padding: 6px 10px;
-    border-radius: 6px;
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+    padding: 6px 10px; border-radius: 6px;
+    display: flex; gap: 14px; flex-wrap: wrap;
   }
   .cat-breakdown b { color: #2c3e50; }
+
+  /* BAN警告 */
+  .ban-warning {
+    background: linear-gradient(135deg, #fff4d6, #ffe8a0);
+    border-left: 4px solid #f5af19;
+    padding: 12px 16px;
+    margin: 0 40px 8px;
+    border-radius: 8px;
+    font-size: 12px; line-height: 1.6;
+    color: #6b5400;
+  }
+  .ban-warning b { color: #b8860b; }
 
   /* 入力ページ */
   .input-section { padding: 24px 40px; }
@@ -220,27 +222,21 @@
     padding: 16px 20px;
     border-radius: 12px;
     margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 10px;
   }
   .account-header .title-area { display: flex; align-items: center; gap: 12px; }
   .account-header .acc-icon {
     width: 40px; height: 40px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.2); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
     font-size: 18px; font-weight: 900;
   }
   .account-header input.acc-name {
     background: rgba(255,255,255,0.15);
     border: 1px solid rgba(255,255,255,0.3);
     color: #fff;
-    padding: 6px 12px;
-    border-radius: 8px;
+    padding: 6px 12px; border-radius: 8px;
     font-size: 16px; font-weight: 700;
     width: 220px;
   }
@@ -248,18 +244,14 @@
   .account-header .acc-score {
     font-size: 13px;
     background: rgba(255,255,255,0.15);
-    padding: 6px 14px; border-radius: 20px;
-    font-weight: 600;
+    padding: 6px 14px; border-radius: 20px; font-weight: 600;
   }
   .input-intro {
     background: linear-gradient(135deg, #667eea22, #764ba222);
     border-left: 4px solid #667eea;
-    padding: 14px 18px;
-    border-radius: 8px;
+    padding: 14px 18px; border-radius: 8px;
     margin-bottom: 20px;
-    font-size: 13px;
-    color: #2c3e50;
-    line-height: 1.6;
+    font-size: 13px; color: #2c3e50; line-height: 1.6;
   }
   .input-card {
     background: #fff;
@@ -270,6 +262,8 @@
     transition: border-color 0.2s;
   }
   .input-card:focus-within { border-color: #667eea; }
+  .input-card.section-hr { border-color: #cde7ee; background: #f5fbfc; }
+  .input-card.section-hr:focus-within { border-color: #2193b0; }
   .input-card-header {
     display: flex; justify-content: space-between;
     align-items: center; margin-bottom: 8px;
@@ -279,12 +273,36 @@
     display: flex; align-items: center; gap: 10px;
   }
   .input-card-title .icon {
-    width: 28px; height: 28px;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
     color: #fff; font-size: 14px; font-weight: 700;
   }
+  .section-label {
+    display: inline-block;
+    background: #11998e; color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px;
+    margin-left: 6px;
+    letter-spacing: 1px;
+  }
+  .section-label.hr { background: #2193b0; }
+
+  .subsection-banner {
+    margin-top: 8px; margin-bottom: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .subsection-banner.perf { background: linear-gradient(135deg, #11998e, #38ef7d); }
+  .subsection-banner.hr   { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+  .subsection-banner .desc {
+    font-weight: 400; font-size: 11px;
+    opacity: 0.95; margin-top: 4px;
+    letter-spacing: 0.5px;
+  }
+
   .input-row {
     display: flex; gap: 10px; align-items: center;
     margin-top: 8px; flex-wrap: wrap;
@@ -295,16 +313,14 @@
   .input-row label {
     flex: 0 0 auto;
     font-size: 13px; color: #2c3e50; font-weight: 500;
-    min-width: 160px;
+    min-width: 200px;
   }
   .input-row input[type="number"] {
     width: 100px;
     padding: 7px 10px;
     border: 1.5px solid #e3e8f0;
     border-radius: 8px;
-    font-size: 14px;
-    text-align: right;
-    font-weight: 600;
+    font-size: 14px; text-align: right; font-weight: 600;
   }
   .input-row input[type="number"]:focus {
     outline: none; border-color: #667eea;
@@ -315,92 +331,158 @@
     font-size: 11px; color: #95a5a6;
     background: #f8f9fc; padding: 3px 9px; border-radius: 12px;
   }
+  .input-row .daily-hint {
+    font-size: 10px; color: #b8860b;
+    background: #fff4d6; padding: 3px 9px; border-radius: 12px;
+  }
+  .source-pill {
+    font-size: 10px; font-weight: 700;
+    padding: 3px 9px; border-radius: 12px;
+    color: #fff; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .source-pill[data-src="sheet"]     { background:#0F9D58; }
+  .source-pill[data-src="instagram"] { background:#E1306C; }
+  .source-pill[data-src="insight"]   { background:#833AB4; }
+  .source-pill[data-src="attend"]    { background:#1e88e5; }
+  .source-pill[data-src="self"]      { background:#7f8c9b; }
+  .source-pill a {
+    color: #fff; text-decoration: none;
+  }
+  .source-pill a:hover { text-decoration: underline; }
+
+  /* 自動取得パネル */
+  .auto-panel {
+    background: linear-gradient(135deg, #f0fff4, #e6fffa);
+    border: 2px solid #b4f0d8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .auto-panel-title {
+    font-size: 13px; font-weight: 700; color: #11998e;
+    letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .auto-panel-row {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; padding: 7px 0;
+    border-bottom: 1px dashed #b4f0d8;
+    flex-wrap: wrap;
+  }
+  .auto-panel-row:last-of-type { border-bottom: none; }
+  .auto-panel-label {
+    font-size: 12.5px; color: #2c3e50;
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .auto-panel-actions {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .auto-panel-info {
+    font-size: 11px; color: #7f8c9b;
+    background: #fff; padding: 4px 10px; border-radius: 12px;
+    border: 1px solid #e3e8f0;
+  }
+  .auto-panel-info.ok    { color: #0f7d52; background: #d6f5e3; border-color: #a3e6c1; }
+  .auto-panel-info.err   { color: #b91c1c; background: #fee2e2; border-color: #fca5a5; }
+  .auto-panel-info.work  { color: #92400e; background: #fef3c7; border-color: #fcd34d; }
+  .auto-btn {
+    background: #11998e; color: #fff; border: none;
+    padding: 6px 14px; border-radius: 16px;
+    font-size: 11.5px; font-weight: 700; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .auto-btn:hover { background: #0d7d76; transform: translateY(-1px); }
+  .auto-btn.ghost { background: #fff; color: #11998e; border: 1.5px solid #11998e; }
+  .auto-btn.ghost:hover { background: #e7f7f3; }
+  .auto-btn:disabled { background: #d1d5db; color: #6b7280; cursor: not-allowed; transform: none; }
+  .auto-panel-hint {
+    margin-top: 8px;
+    font-size: 11px; color: #7f8c9b;
+    text-align: right;
+  }
+
+  /* 設定タブ：連携設定 */
+  .integration-card {
+    background: #fff; border: 2px solid #eef1f7;
+    border-radius: 14px; padding: 16px 18px; margin-bottom: 14px;
+  }
+  .integration-card h3 {
+    font-size: 14px; margin-bottom: 8px; color: #2c3e50;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .integration-card .help {
+    font-size: 11px; color: #7f8c9b; line-height: 1.6;
+    background: #f8f9fc; padding: 8px 10px; border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  .integration-row {
+    display: flex; gap: 10px; align-items: center;
+    padding: 6px 0; flex-wrap: wrap;
+  }
+  .integration-row label {
+    flex: 0 0 160px; font-size: 12px; color: #2c3e50;
+  }
+  .integration-row input[type="text"], .integration-row input[type="password"] {
+    flex: 1; min-width: 180px;
+    padding: 7px 10px;
+    border: 1.5px solid #e3e8f0; border-radius: 8px;
+    font-size: 12px; font-family: monospace;
+  }
+  .integration-row input:focus {
+    outline: none; border-color: #11998e; box-shadow: 0 0 0 3px #11998e33;
+  }
 
   /* アーカイブページ */
   .archive-section { padding: 24px 40px; }
   .archive-controls {
     background: linear-gradient(135deg, #f5af19, #f12711);
     color: #fff;
-    padding: 18px 20px;
-    border-radius: 12px;
+    padding: 18px 20px; border-radius: 12px;
     margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
   }
   .archive-controls .text { font-size: 13px; line-height: 1.6; }
   .archive-controls button {
-    background: #fff;
-    color: #f12711;
-    border: none;
-    padding: 10px 22px;
+    background: #fff; color: #f12711;
+    border: none; padding: 10px 22px;
     border-radius: 24px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
+    font-size: 13px; font-weight: 700; cursor: pointer;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   }
   .archive-controls button:hover { transform: translateY(-1px); }
-  .archive-list {
-    display: flex; flex-direction: column; gap: 14px;
-  }
+  .archive-list { display: flex; flex-direction: column; gap: 14px; }
   .archive-card {
     background: #fff;
     border: 2px solid #eef1f7;
     border-radius: 14px;
     padding: 18px 20px;
     display: grid;
-    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
-    gap: 16px;
-    align-items: center;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr 1fr auto;
+    gap: 14px; align-items: center;
   }
   .archive-card:hover { border-color: #667eea; }
-  .archive-card .ar-month {
-    font-size: 18px; font-weight: 700; color: #2c3e50;
-  }
-  .archive-card .ar-month-sub {
-    font-size: 11px; color: #95a5a6; font-weight: 400;
-    margin-top: 2px;
-  }
-  .archive-card .ar-item {
-    text-align: center;
-  }
-  .archive-card .ar-item .lbl {
-    font-size: 10px; color: #7f8c9b; letter-spacing: 1px;
-  }
-  .archive-card .ar-item .val {
-    font-size: 18px; font-weight: 700; color: #2c3e50;
-    margin-top: 2px;
-  }
-  .archive-card .ar-rank {
-    font-size: 28px; font-weight: 900;
-    padding: 4px 14px; border-radius: 10px;
-  }
+  .archive-card .ar-month { font-size: 18px; font-weight: 700; color: #2c3e50; }
+  .archive-card .ar-month-sub { font-size: 11px; color: #95a5a6; font-weight: 400; margin-top: 2px; }
+  .archive-card .ar-item { text-align: center; }
+  .archive-card .ar-item .lbl { font-size: 10px; color: #7f8c9b; letter-spacing: 1px; }
+  .archive-card .ar-item .val { font-size: 16px; font-weight: 700; color: #2c3e50; margin-top: 2px; }
+  .archive-card .ar-rank { font-size: 26px; font-weight: 900; padding: 4px 14px; border-radius: 10px; }
   .archive-card .ar-actions { display: flex; gap: 6px; }
   .archive-card .ar-actions button {
-    background: #f8f9fc;
-    color: #667eea;
+    background: #f8f9fc; color: #667eea;
     border: 1.5px solid #e3e8f0;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    cursor: pointer;
-    font-weight: 600;
+    padding: 6px 12px; border-radius: 8px;
+    font-size: 11px; cursor: pointer; font-weight: 600;
   }
-  .archive-card .ar-actions button.danger {
-    color: #f12711;
-    border-color: #ffd5d0;
-  }
+  .archive-card .ar-actions button.danger { color: #f12711; border-color: #ffd5d0; }
   .archive-card .ar-actions button:hover { background: #eef1f7; }
   .archive-empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: #95a5a6;
-    font-size: 14px;
-    background: #f8f9fc;
-    border-radius: 14px;
+    text-align: center; padding: 40px 20px;
+    color: #95a5a6; font-size: 14px;
+    background: #f8f9fc; border-radius: 14px;
     border: 2px dashed #e3e8f0;
   }
 
@@ -409,11 +491,9 @@
   .settings-intro {
     background: linear-gradient(135deg, #2193b022, #6dd5ed22);
     border-left: 4px solid #2193b0;
-    padding: 14px 18px;
-    border-radius: 8px;
+    padding: 14px 18px; border-radius: 8px;
     margin-bottom: 20px;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 13px; line-height: 1.6;
   }
   .settings-card {
     background: #fff;
@@ -424,26 +504,16 @@
   }
   .settings-row {
     display: flex; gap: 10px; align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px dashed #eef1f7;
+    padding: 8px 0; border-bottom: 1px dashed #eef1f7;
   }
   .settings-row:last-child { border-bottom: none; }
-  .settings-row label {
-    flex: 1;
-    font-size: 13px;
-    color: #2c3e50;
-  }
-  .settings-row .default {
-    font-size: 11px;
-    color: #95a5a6;
-  }
+  .settings-row label { flex: 1; font-size: 13px; color: #2c3e50; }
+  .settings-row .default { font-size: 11px; color: #95a5a6; }
   .settings-row input[type="number"] {
     width: 90px;
     padding: 6px 10px;
     border: 1.5px solid #e3e8f0;
-    border-radius: 8px;
-    font-size: 13px;
-    text-align: right;
+    border-radius: 8px; font-size: 13px; text-align: right;
   }
   .settings-row input[type="number"]:focus {
     outline: none; border-color: #2193b0;
@@ -460,8 +530,7 @@
   button.action-btn {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff; border: none;
-    padding: 12px 28px;
-    border-radius: 30px;
+    padding: 12px 28px; border-radius: 30px;
     font-size: 14px; font-weight: 600;
     cursor: pointer; margin: 0 6px;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -481,74 +550,38 @@
   .lock-overlay {
     position: fixed; inset: 0;
     background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    display: flex;
-    align-items: center; justify-content: center;
-    z-index: 9999;
-    padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999; padding: 20px;
   }
   .lock-overlay.hidden { display: none; }
   .lock-box {
-    background: #fff;
-    border-radius: 20px;
+    background: #fff; border-radius: 20px;
     padding: 40px 36px;
-    max-width: 420px;
-    width: 100%;
+    max-width: 420px; width: 100%;
     box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     text-align: center;
   }
-  .lock-box .lock-icon {
-    font-size: 56px;
-    margin-bottom: 14px;
-  }
-  .lock-box h2 {
-    font-size: 22px;
-    margin-bottom: 8px;
-    color: #2c3e50;
-  }
-  .lock-box p {
-    font-size: 13px;
-    color: #7f8c9b;
-    margin-bottom: 22px;
-    line-height: 1.6;
-  }
+  .lock-box .lock-icon { font-size: 56px; margin-bottom: 14px; }
+  .lock-box h2 { font-size: 22px; margin-bottom: 8px; color: #2c3e50; }
+  .lock-box p { font-size: 13px; color: #7f8c9b; margin-bottom: 22px; line-height: 1.6; }
   .lock-box input[type="password"] {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e3e8f0;
-    border-radius: 10px;
-    font-size: 16px;
-    margin-bottom: 12px;
+    width: 100%; padding: 14px 16px;
+    border: 2px solid #e3e8f0; border-radius: 10px;
+    font-size: 16px; margin-bottom: 12px;
     font-family: inherit;
   }
-  .lock-box input[type="password"]:focus {
-    outline: none; border-color: #667eea;
-    box-shadow: 0 0 0 3px #667eea33;
-  }
+  .lock-box input[type="password"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px #667eea33; }
   .lock-box button {
     width: 100%;
     background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    border: none;
-    padding: 14px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
+    color: #fff; border: none;
+    padding: 14px; border-radius: 10px;
+    font-size: 15px; font-weight: 700; cursor: pointer;
     margin-top: 6px;
   }
   .lock-box button:hover { transform: translateY(-1px); }
-  .lock-box .err {
-    color: #f12711;
-    font-size: 13px;
-    margin-top: 8px;
-    min-height: 18px;
-  }
-  .lock-box .hint {
-    font-size: 11px;
-    color: #95a5a6;
-    margin-top: 14px;
-    line-height: 1.5;
-  }
+  .lock-box .err { color: #f12711; font-size: 13px; margin-top: 8px; min-height: 18px; }
+  .lock-box .hint { font-size: 11px; color: #95a5a6; margin-top: 14px; line-height: 1.5; }
 
   .toast {
     position: fixed; bottom: 30px; left: 50%;
@@ -557,8 +590,7 @@
     padding: 12px 24px; border-radius: 30px;
     font-size: 14px; font-weight: 600;
     box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-    transition: transform 0.3s;
-    z-index: 1000;
+    transition: transform 0.3s; z-index: 1000;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.success { background: #11998e; }
@@ -568,33 +600,21 @@
   .modal-overlay {
     position: fixed; inset: 0;
     background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center; justify-content: center;
-    z-index: 999;
-    padding: 20px;
+    display: none; align-items: center; justify-content: center;
+    z-index: 999; padding: 20px;
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: #fff;
-    border-radius: 16px;
-    max-width: 800px;
-    width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
+    background: #fff; border-radius: 16px;
+    max-width: 800px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
     padding: 24px 28px;
   }
-  .modal h2 {
-    font-size: 20px; margin-bottom: 12px;
-    border-bottom: 2px solid #eef1f7;
-    padding-bottom: 10px;
-  }
-  .modal .close-btn {
-    margin-top: 16px;
-    text-align: right;
-  }
+  .modal h2 { font-size: 20px; margin-bottom: 12px; border-bottom: 2px solid #eef1f7; padding-bottom: 10px; }
+  .modal .close-btn { margin-top: 16px; text-align: right; }
 
   @media (max-width: 760px) {
-    .summary { grid-template-columns: 1fr; }
+    .summary { grid-template-columns: 1fr 1fr; }
     .header { padding: 20px; }
     .categories, .input-section, .archive-section, .settings-section { padding: 20px; }
     .header h1 { font-size: 20px; }
@@ -602,32 +622,8 @@
     .input-row label { min-width: auto; flex: 1 0 100%; }
     .account-header input.acc-name { width: 100%; }
     .archive-card { grid-template-columns: 1fr 1fr; }
+    .section-heading, .ban-warning { margin-left: 20px; margin-right: 20px; }
   }
-
-  /* ランク昇格目標バッジ */
-  .input-row .rankup-target {
-    background: #fff4e0;
-    color: #c9760a;
-    border: 1px solid #ffd9a0;
-    font-weight: 700;
-  }
-  .input-row .rankup-target.cleared {
-    background: #e6f9f0;
-    color: #0e8a5f;
-    border-color: #a8e6cf;
-  }
-  /* ランク昇格サマリー（入力ページ上部） */
-  .rankup-summary {
-    background: linear-gradient(135deg, #fff4e0, #ffe9c7);
-    border-left: 4px solid #f5af19;
-    padding: 14px 18px;
-    border-radius: 8px;
-    margin-bottom: 14px;
-    font-size: 13px;
-    color: #2c3e50;
-    line-height: 1.7;
-  }
-  .rankup-summary b { color: #c9760a; }
 </style>
 </head>
 <body>
@@ -652,8 +648,8 @@
 <div class="container">
 
   <div class="header">
-    <h1>業績給 進捗トラッカー</h1>
-    <p>マメ太アカウント / 1,000点満点 / 月次アーカイブ・目標カスタマイズ対応</p>
+    <h1>業績給 進捗トラッカー v3</h1>
+    <p>1アカウント運用基準 / 業績700pt（台本・投稿・ストーリーズ・フォロワー・リール再生数） + 人事300pt = 1,000点満点</p>
   </div>
 
   <!-- 共有バー -->
@@ -672,7 +668,7 @@
   <!-- タブ -->
   <div class="tabs">
     <div class="tab active" data-page="dashboard" onclick="switchPage('dashboard')">📊 ダッシュボード</div>
-    <div class="tab" data-page="account" onclick="switchPage('account')">✏️ <span id="tabAccName">マメ太</span></div>
+    <div class="tab" data-page="input" onclick="switchPage('input')">✏️ 実績入力</div>
     <div class="tab" data-page="archive" onclick="switchPage('archive')">📁 履歴</div>
     <div class="tab" data-page="settings" onclick="switchPage('settings')">⚙️ 設定</div>
   </div>
@@ -681,50 +677,142 @@
   <div class="page active" id="page-dashboard">
     <div class="summary">
       <div class="summary-card">
-        <div class="label">スコア / 達成度（マメ太アカウント）</div>
-        <div class="value"><span id="totalScore">0</span> <span style="font-size:16px;color:#95a5a6;">/ 1000点</span></div>
+        <div class="label">合計スコア / 達成度</div>
+        <div class="value"><span id="totalScore">0</span> <span style="font-size:14px;color:#95a5a6;">/ 1000点</span></div>
         <div class="sub">達成度 <span id="totalPercent">0</span>%</div>
         <div class="total-bar-container">
-          <div class="total-bar-fill" id="totalBarFill"></div>
+          <div class="total-bar-fill total" id="totalBarFill"></div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="label">業績評価（数字ベース）</div>
+        <div class="small-value"><span id="perfScore">0</span> <span style="font-size:12px;color:#95a5a6;">/ 700点</span></div>
+        <div class="total-bar-container">
+          <div class="total-bar-fill perf" id="perfBarFill"></div>
+        </div>
+      </div>
+      <div class="summary-card">
+        <div class="label">人事評価（取り組み姿勢）</div>
+        <div class="small-value"><span id="hrScore">0</span> <span style="font-size:12px;color:#95a5a6;">/ 300点</span></div>
+        <div class="total-bar-container">
+          <div class="total-bar-fill hr" id="hrBarFill"></div>
         </div>
       </div>
       <div class="summary-card" style="text-align:center;">
-        <div class="label">現在の評価</div>
+        <div class="label">評価 / 業績給</div>
         <div style="margin-top:6px;"><span class="rank-badge rank-D" id="rankBadge">D</span></div>
-        <div class="sub" id="rankUpHint" style="margin-top:8px;"></div>
-      </div>
-      <div class="summary-card" style="text-align:center;">
-        <div class="label">業績給</div>
-        <div class="salary-box">
+        <div class="salary-box" style="margin-top:6px;">
           <span class="yen">¥</span><span class="amount" id="salaryAmount">5,000</span>
         </div>
-        <div class="sub">+ 基本給 ¥3,000</div>
       </div>
     </div>
-    <div class="categories" id="categoriesArea"></div>
+
+    <div class="ban-warning">
+      📌 <b>運用方針</b>：1アカウント運用 / <b>いいね周り・コメント周り・会議は実施しない</b>方針。
+      投稿・台本・フォロワー・リール再生数で評価します。<br>
+      📌 <b>データ取得方法</b>：📊台本=スプレッドシート　📱投稿/ストーリーズ=Instagramを直接確認　📈フォロワー/リール再生数=Instagramインサイト　⏱️勤務時間=勤怠アプリ　✅起床=朝6時固定（自己申告）
+    </div>
+
+    <div class="section-heading perf">
+      <span>📈 業績評価（数字ベース・結果と努力量）</span>
+      <span class="score-pill"><span id="perfSectionScore">0</span> / 700 点</span>
+    </div>
+    <div class="categories" id="perfCategoriesArea" style="padding-top:14px;padding-bottom:8px;"></div>
+
+    <div class="section-heading hr">
+      <span>🧭 人事評価（取り組み姿勢）</span>
+      <span class="score-pill"><span id="hrSectionScore">0</span> / 300 点</span>
+    </div>
+    <div class="categories" id="hrCategoriesArea" style="padding-top:14px;"></div>
   </div>
 
-  <!-- マメ太アカウント -->
-  <div class="page" id="page-account">
+  <!-- 実績入力 -->
+  <div class="page" id="page-input">
     <div class="input-section">
       <div class="account-header">
         <div class="title-area">
-          <div class="acc-icon">M</div>
+          <div class="acc-icon">A</div>
           <input type="text" class="acc-name" id="accNameInput" placeholder="アカウント名">
         </div>
-        <div class="acc-score" id="accScoreDisplay">スコア: 0 / 1000点</div>
-      </div>
-      <div class="rankup-summary" id="rankUpSummary">
-        📊 実績を入力すると、ここに現在のランクと「次のランクまであと何点か」が表示されます。
+        <div class="acc-score" id="accScoreDisplay">合計: 0 / 1000点</div>
       </div>
       <div class="input-intro">
-        💡 <b>今月の実績</b>を数字で入力してください。各項目に <b>「単独目標」</b>（達成度100%の基準）と <b>「次のランクまでの目安値」</b> を表示しています。
+        💡 <b>今月の実績</b>を数字で入力してください。入力は自動で保存されます。<br>
+        📊 <b>台本作成本数の確認元：</b>
+        <a href="https://docs.google.com/spreadsheets/d/1nXO8K75kwFcQGEGcw5jaY5T-PUEJvCmhoKgMkpbOliQ/edit?usp=sharing"
+           target="_blank" rel="noopener" style="color:#0F9D58;font-weight:700;">📊 リール台本添削シートを開く</a><br>
+        📱 <b>投稿・ストーリーズの確認元：</b>
+        <a href="https://www.instagram.com/mameta_diet_science/"
+           target="_blank" rel="noopener" style="color:#E1306C;font-weight:700;">📱 Instagramアカウントを開く</a><br>
+        📈 <b>フォロワー数／リール再生数：</b> Instagramアプリ → プロフィール → インサイト で月次値を取得<br>
+        ⏱️ <b>勤務時間：</b> 後日共有される勤怠アプリで日数をカウント<br>
+        ✅ <b>朝起床：</b> 6時固定。達成日数を自己申告
       </div>
-      <div id="accInputArea"></div>
+
+      <!-- 自動取得パネル -->
+      <div class="auto-panel">
+        <div class="auto-panel-title">🔄 自動取得</div>
+        <div class="auto-panel-row">
+          <div class="auto-panel-label">
+            <span class="source-pill" data-src="sheet">📊 スプレッドシート</span>
+            台本作成本数
+          </div>
+          <div class="auto-panel-actions">
+            <span class="auto-panel-info" id="sheetInfo">未取得</span>
+            <button class="auto-btn" onclick="fetchScriptCount()">🔄 今すぐ取得</button>
+            <button class="auto-btn ghost" onclick="setSheetBaseline()" title="今月の起点として現在の合計値を保存します">📌 月初リセット</button>
+          </div>
+        </div>
+        <div class="auto-panel-row">
+          <div class="auto-panel-label">
+            <span class="source-pill" data-src="instagram">📱 Instagram</span>
+            投稿数・ストーリーズ・毎日投稿日数
+          </div>
+          <div class="auto-panel-actions">
+            <span class="auto-panel-info" id="igInfo">設定タブから Graph API トークンを登録すると自動取得できます</span>
+            <button class="auto-btn" onclick="fetchInstagram()">🔄 取得</button>
+          </div>
+        </div>
+        <div class="auto-panel-row">
+          <div class="auto-panel-label">
+            <span class="source-pill" data-src="insight">📈 インサイト</span>
+            フォロワー純増・リール再生数
+          </div>
+          <div class="auto-panel-actions">
+            <span class="auto-panel-info" id="insightInfo">Graph API + 月初の基準値で純増を自動計算</span>
+            <button class="auto-btn" onclick="fetchInstagram()">🔄 取得</button>
+          </div>
+        </div>
+        <div class="auto-panel-row">
+          <div class="auto-panel-label">
+            <span class="source-pill" data-src="attend">⏱️ 勤怠アプリ</span>
+            8時間以上勤務日数
+          </div>
+          <div class="auto-panel-actions">
+            <span class="auto-panel-info" id="attendInfo">自作アプリのAPIエンドポイントを設定タブで登録</span>
+            <button class="auto-btn" onclick="fetchAttendance()">🔄 取得</button>
+          </div>
+        </div>
+        <div class="auto-panel-hint">
+          ✅ 朝6時起床／作業遅延なしは自己申告（自動化対象外）
+        </div>
+      </div>
+
+      <div class="subsection-banner perf">
+        📈 業績評価（数字ベース）
+        <div class="desc">結果（達成度）と達成までの努力量を、目標値との対比で評価</div>
+      </div>
+      <div id="perfInputArea"></div>
+
+      <div class="subsection-banner hr">
+        🧭 人事評価（取り組み姿勢）
+        <div class="desc">毎日投稿・8時間勤務・朝6時起床・作業遅延ゼロ。1日でも積み上げる項目（会議参加・いいね周り・コメント周りは無し）</div>
+      </div>
+      <div id="hrInputArea"></div>
     </div>
   </div>
 
-  <!-- 履歴ページ -->
+  <!-- 履歴 -->
   <div class="page" id="page-archive">
     <div class="archive-section">
       <div class="archive-controls">
@@ -738,17 +826,104 @@
     </div>
   </div>
 
-  <!-- 設定ページ -->
+  <!-- 設定 -->
   <div class="page" id="page-settings">
     <div class="settings-section">
       <div class="settings-intro">
         ⚙️ <b>各項目の月間目標を変更できます。</b><br>
-        変更しても入力済みの実績データは保持され、新しい目標で達成度・ランク昇格目安が再計算されます。<br>
-        ここで設定する目標が <b>「単独目標（達成度100%の基準）」</b> になります。
+        変更しても入力済みの実績データは保持され、新しい目標で達成度が再計算されます。<br>
+        🎯 <b>フォロワー純増目標 / リール再生数目標</b>は、運用フェーズに合わせて月初に見直すのを推奨します。
       </div>
       <div id="settingsArea"></div>
       <div style="text-align:center; margin-top:20px;">
         <button class="action-btn warn" onclick="resetTargetsToDefault()">目標を初期値に戻す</button>
+      </div>
+
+      <!-- 連携設定 -->
+      <div style="margin-top:30px; margin-bottom:14px; font-size:13px; font-weight:700; color:#11998e; letter-spacing:1px;">
+        🔌 外部サービス連携（自動取得設定）
+      </div>
+
+      <!-- スプレッドシート -->
+      <div class="integration-card">
+        <h3><span class="source-pill" data-src="sheet">📊 スプレッドシート</span> 台本作成シート</h3>
+        <div class="help">
+          リンクを知っている全員が「閲覧者」で共有してください（既に共有済みなら設定不要）。<br>
+          シートIDは <code>https://docs.google.com/spreadsheets/d/<b>ここがID</b>/edit</code> の部分です。
+        </div>
+        <div class="integration-row">
+          <label>シートID</label>
+          <input type="text" id="igSheetId" placeholder="1nXO8K75kwFc..."
+            oninput="onIntegrationChange('sheet','id', this.value.trim())">
+        </div>
+        <div class="integration-row">
+          <label>シートタブ名</label>
+          <input type="text" id="igSheetName" placeholder="台本作成用"
+            oninput="onIntegrationChange('sheet','name', this.value.trim())">
+        </div>
+        <div style="font-size:11px;color:#7f8c9b;margin-top:6px;">
+          ※ 1列目（No.列）に数字が入っている行を「台本」としてカウントします。<br>
+          ※ 月初リセット後の追加分を「今月の本数」として算出します。
+        </div>
+      </div>
+
+      <!-- Instagram -->
+      <div class="integration-card">
+        <h3><span class="source-pill" data-src="instagram">📱 Instagram</span> Graph API</h3>
+        <div class="help">
+          <b>セットアップ手順:</b><br>
+          1. Instagram アカウントを「プロアカウント（クリエイター/ビジネス）」に切替<br>
+          2. Facebook ページとリンク（プロフィール編集 → ページのリンク）<br>
+          3. <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> でアプリ作成（用途: その他/ビジネス）<br>
+          4. Graph API Explorer で <code>instagram_basic</code>, <code>instagram_manage_insights</code>, <code>pages_show_list</code>, <code>pages_read_engagement</code> 権限のトークン発行<br>
+          5. <a href="https://developers.facebook.com/tools/debug/accesstoken/" target="_blank" rel="noopener">Access Token Debugger</a> で「Extend Token」→ 長期トークン（60日）に変換<br>
+          6. <code>/me/accounts</code> → <code>{page-id}?fields=instagram_business_account</code> で IG User ID（数字）を取得<br>
+          ※ トークンはこのブラウザ内に保存されます。共有リンク先のクラウドにも同期されるので、共有相手とのみ共有してください。
+        </div>
+        <div class="integration-row">
+          <label>長期アクセストークン</label>
+          <input type="text" id="igToken" placeholder="EAAG... （60日有効）"
+            oninput="onIntegrationChange('ig','token', this.value.trim())"
+            style="font-size:11px;">
+        </div>
+        <div class="integration-row">
+          <label>IG User ID</label>
+          <input type="text" id="igUserId" placeholder="17841... （数字）"
+            oninput="onIntegrationChange('ig','igUserId', this.value.trim())">
+        </div>
+        <div class="integration-row" style="align-items:flex-start;">
+          <label>月初の基準値</label>
+          <div style="flex:1; font-size:12px; color:#7f8c9b;">
+            <span id="igBaselineInfo">未設定</span>
+            <button class="auto-btn ghost" style="margin-left:10px;" onclick="setIgBaseline()">📌 今のフォロワー数を月初値に設定</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 勤怠アプリ -->
+      <div class="integration-card">
+        <h3><span class="source-pill" data-src="attend">⏱️ 勤怠アプリ</span> 自作API</h3>
+        <div class="help">
+          自作の勤怠アプリのエンドポイントを登録してください。<br>
+          GETリクエストで JSON を返し、<code>{"days8h": 18}</code> のようなキー指定で日数を読み取ります。<br>
+          認証ヘッダは <code>Header-Name: value</code> 形式で1行（任意）。<br>
+          ※ そのアプリが CORS を許可している必要があります（<code>Access-Control-Allow-Origin: *</code> など）。
+        </div>
+        <div class="integration-row">
+          <label>APIエンドポイントURL</label>
+          <input type="text" id="attendUrl" placeholder="https://your-attendance-app.example.com/api/month"
+            oninput="onIntegrationChange('attend','url', this.value.trim())">
+        </div>
+        <div class="integration-row">
+          <label>認証ヘッダ（任意）</label>
+          <input type="text" id="attendAuth" placeholder="Authorization: Bearer xxxxx"
+            oninput="onIntegrationChange('attend','authHeader', this.value.trim())">
+        </div>
+        <div class="integration-row">
+          <label>レスポンスキー名</label>
+          <input type="text" id="attendKey" placeholder="days8h"
+            oninput="onIntegrationChange('attend','key', this.value.trim())">
+        </div>
       </div>
 
       <!-- セキュリティ -->
@@ -787,227 +962,186 @@
 
 <script>
 /* ==========================================================================
-   業績給 進捗トラッカー（2アカウント・履歴・設定対応）
+   業績給 進捗トラッカー v3（1アカウント運用基準 / データ取得方法明示）
    ========================================================================== */
 
-/* デフォルトカテゴリ定義 */
+/* デフォルトカテゴリ定義（section: 'perf' = 業績評価 / 'hr' = 人事評価）
+   各 input には source（データ取得方法）を付与:
+     'sheet'    = Googleスプレッドシート
+     'instagram'= Instagramアカウント直接確認
+     'insight'  = Instagramインサイト
+     'attend'   = 勤怠アプリ
+     'self'     = 自己申告（朝6時起床固定）
+*/
 const DEFAULT_CATEGORIES = [
+  /* ---------- 業績評価（合計 700点） ---------- */
   {
-    id: 1, name: '競合リサーチ・分析', max: 150, icon:'1',
-    color:'linear-gradient(90deg,#FF6B6B,#FFE66D)', iconColor:'#FF6B6B',
-    desc:'1日10件以上の競合リサーチ、構造化記録、週次レポート',
-    inputs:[
-      { key:'research_count', label:'競合リサーチ件数', unit:'件', target:220, weight:100 },
-      { key:'research_report', label:'週次レポート提出', unit:'本', target:4, weight:30 },
-      { key:'research_struct', label:'構造化記録の遵守日数', unit:'日', target:22, weight:20 },
-    ]
-  },
-  {
-    id: 2, name: '台本作成', max: 150, icon:'2',
+    id: 1, name: '台本作成', section: 'perf', max: 200, icon:'1',
     color:'linear-gradient(90deg,#A8E6CF,#3D84A8)', iconColor:'#3D84A8',
-    desc:'週14本以上、構成テンプレ準拠、修正対応スピード',
+    desc:'1日1本ペースで月30本',
     inputs:[
-      { key:'script_count', label:'台本作成本数', unit:'本', target:56, weight:100 },
-      { key:'script_template', label:'テンプレ準拠本数', unit:'本', target:56, weight:30 },
-      { key:'script_revise', label:'24h以内修正対応回数', unit:'回', target:10, weight:20 },
+      { key:'script_count', label:'台本作成本数', unit:'本', target:30, weight:200, dailyHint:'1本/日', source:'sheet' },
     ]
   },
   {
-    id: 3, name: '撮影業務', max: 120, icon:'3',
-    color:'linear-gradient(90deg,#FFB75E,#ED8F03)', iconColor:'#ED8F03',
-    desc:'撮影完了率、素材ストック、クオリティ',
-    inputs:[
-      { key:'shoot_count', label:'撮影完了本数', unit:'本', target:60, weight:80 },
-      { key:'shoot_stock', label:'素材ストック数', unit:'本', target:20, weight:25 },
-      { key:'shoot_quality', label:'クオリティOK本数', unit:'本', target:60, weight:15 },
-    ]
-  },
-  {
-    id: 4, name: '投稿業務 ★最重要', max: 180, icon:'4',
+    id: 2, name: '投稿業務 ★最重要', section: 'perf', max: 200, icon:'2',
     color:'linear-gradient(90deg,#f12711,#f5af19)', iconColor:'#f12711',
-    desc:'毎日投稿、ゴールデンタイム遵守、ハッシュタグ最適化',
+    desc:'毎日1投稿（月30本）／ゴールデンタイム遵守／ハッシュタグ最適化',
     inputs:[
-      { key:'post_count', label:'投稿数', unit:'投稿', target:30, weight:100 },
-      { key:'post_golden', label:'ゴールデンタイム投稿数', unit:'投稿', target:30, weight:50 },
-      { key:'post_hashtag', label:'ハッシュタグ最適化済み投稿', unit:'投稿', target:30, weight:30 },
+      { key:'post_count',    label:'投稿数',                       unit:'投稿', target:30, weight:120, dailyHint:'1投稿/日', source:'instagram' },
+      { key:'post_golden',   label:'ゴールデンタイム投稿数',       unit:'投稿', target:30, weight:50,                          source:'instagram' },
+      { key:'post_hashtag',  label:'ハッシュタグ最適化済み投稿',   unit:'投稿', target:30, weight:30,                          source:'instagram' },
     ]
   },
   {
-    id: 5, name: 'ストーリーズ運用', max: 100, icon:'5',
+    id: 3, name: 'ストーリーズ運用', section: 'perf', max: 100, icon:'3',
     color:'linear-gradient(90deg,#6a11cb,#2575fc)', iconColor:'#6a11cb',
-    desc:'毎日3投稿以上、スタンプ活用',
+    desc:'1日2件目安、スタンプ・質問箱を活用',
     inputs:[
-      { key:'story_count', label:'ストーリーズ投稿数', unit:'件', target:90, weight:70 },
-      { key:'story_stamp', label:'スタンプ活用投稿数', unit:'件', target:30, weight:30 },
+      { key:'story_count', label:'ストーリーズ投稿数',   unit:'件', target:60, weight:70, dailyHint:'2件/日', source:'instagram' },
+      { key:'story_stamp', label:'スタンプ活用投稿数',   unit:'件', target:30, weight:30, dailyHint:'1件/日', source:'instagram' },
     ]
   },
   {
-    id: 6, name: 'いいね回り・エンゲージメント', max: 150, icon:'6',
-    color:'linear-gradient(90deg,#11998e,#38ef7d)', iconColor:'#11998e',
-    desc:'いいね1日30件以上、コメント1日40件以上、ターゲット精度',
+    id: 4, name: 'フォロワー目標達成', section: 'perf', max: 100, icon:'4',
+    color:'linear-gradient(90deg,#FF6B6B,#FFE66D)', iconColor:'#FF6B6B',
+    desc:'今月の純増フォロワー数（目標は設定タブで調整）',
     inputs:[
-      { key:'like_count', label:'いいね数', unit:'件', target:900, weight:90 },
-      { key:'comment_count', label:'コメント数', unit:'件', target:1200, weight:40 },
-      { key:'target_accuracy', label:'ターゲット精度日数', unit:'日', target:30, weight:20 },
+      { key:'follower_gain', label:'今月の純増フォロワー数', unit:'人', target:500, weight:100, source:'insight' },
+    ]
+  },
+  {
+    id: 5, name: 'リール再生数達成', section: 'perf', max: 100, icon:'5',
+    color:'linear-gradient(90deg,#11998e,#38ef7d)', iconColor:'#11998e',
+    desc:'今月公開リールの合計再生数（plays）',
+    inputs:[
+      { key:'reel_plays', label:'リール再生数（合計）', unit:'回', target:500000, weight:100, source:'insight' },
+    ]
+  },
+
+  /* ---------- 人事評価（合計 300点） ---------- */
+  {
+    id: 6, name: '取り組み姿勢', section: 'hr', max: 300, icon:'6',
+    color:'linear-gradient(90deg,#2193b0,#6dd5ed)', iconColor:'#2193b0',
+    desc:'勤怠・規律の積み上げを評価（朝6時起床／8時間勤務／作業遅延ゼロ／毎日投稿）',
+    inputs:[
+      { key:'daily_post_days',    label:'毎日投稿達成日数',           unit:'日', target:30, weight:100, dailyHint:'毎日',   source:'instagram' },
+      { key:'work8h_days',        label:'8時間以上勤務日数',          unit:'日', target:22, weight:100, dailyHint:'平日',   source:'attend' },
+      { key:'morning_days',       label:'朝6時起床達成日数',          unit:'日', target:30, weight:50,  dailyHint:'毎日',   source:'self' },
+      { key:'no_delay_days',      label:'作業遅延なし日数',           unit:'日', target:30, weight:50,  dailyHint:'毎日',   source:'self' },
     ]
   },
 ];
+
+/* データ取得方法のラベル定義 */
+const SOURCE_INFO = {
+  sheet:     { label:'📊 スプレッドシート', color:'#0F9D58', tip:'Googleスプレッドシート「リール台本添削シート」で行数カウント' },
+  instagram: { label:'📱 Instagram',         color:'#E1306C', tip:'Instagramアカウント (@mameta_diet_science) を直接開いて確認' },
+  insight:   { label:'📈 インサイト',        color:'#833AB4', tip:'Instagramインサイト → リール／フォロワー で月次数値を確認' },
+  attend:    { label:'⏱️ 勤怠アプリ',         color:'#1e88e5', tip:'勤怠アプリ（後日共有）で出勤時間を確認' },
+  self:      { label:'✅ 自己申告',          color:'#7f8c9b', tip:'毎日の自己申告（朝6時起床固定）' },
+};
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1nXO8K75kwFcQGEGcw5jaY5T-PUEJvCmhoKgMkpbOliQ/edit?usp=sharing';
+const IG_URL = 'https://www.instagram.com/mameta_diet_science/';
 const TOTAL_MAX = 1000;
-/* 6カテゴリの配点合計（＝実際に到達できる最大スコア）。満点 TOTAL_MAX と一致しない場合に備えて算出する */
-const CATEGORY_MAX_SUM = DEFAULT_CATEGORIES.reduce((a, c) => a + c.max, 0);
-/* 全項目を満たした時に到達できる最大の達成度(%) */
-const MAX_ACHIEVABLE_PCT = (CATEGORY_MAX_SUM / TOTAL_MAX) * 100;
+const PERF_MAX = DEFAULT_CATEGORIES.filter(c => c.section === 'perf').reduce((s, c) => s + c.max, 0); // 700
+const HR_MAX   = DEFAULT_CATEGORIES.filter(c => c.section === 'hr').reduce((s, c) => s + c.max, 0);   // 300
 
 /* デフォルト目標マップ */
 const DEFAULT_TARGETS = {};
 DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { DEFAULT_TARGETS[i.key] = i.target; }));
 
-/* キー → 入力項目定義の逆引きマップ */
-const INPUT_BY_KEY = {};
-DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { INPUT_BY_KEY[i.key] = i; }));
-
-/* 評価ランクの基準（達成度% → ランク・業績給） */
-const RANK_TIERS = [
-  { rank: 'D', min: 0,  salary: 5000 },
-  { rank: 'C', min: 55, salary: 15000 },
-  { rank: 'B', min: 70, salary: 28000 },
-  { rank: 'A', min: 85, salary: 40000 },
-  { rank: 'S', min: 95, salary: 50000 },
-];
-
-/* 状態（マメ太アカウント単独運用） */
+/* 状態 */
 let state = {
-  name: 'マメ太',
+  name: 'メインアカウント',
   values: {},
-  targets: {},        // ユーザー上書きの目標値。ない場合はデフォルトを使用
-  archives: [],       // 月次アーカイブ
-  passwordHash: null, // パスワードのSHA-256ハッシュ。null=未設定
+  targets: {},
+  archives: [],
+  passwordHash: null,
+  integration: null, /* {sheet:{id,name}, ig:{token,igUserId,baseline:{follower,setAt}}, attend:{url,authHeader,key}} */
+  baseline: null,    /* {script_count, setAt} 月初の合計値 */
 };
 let isAuthenticated = false;
 
+function defaultIntegration() {
+  return {
+    sheet: {
+      id: '1nXO8K75kwFcQGEGcw5jaY5T-PUEJvCmhoKgMkpbOliQ',
+      name: '台本作成用',
+    },
+    ig: {
+      token: '',
+      igUserId: '',     /* Instagram Business ID (数字) */
+      baseline: null,    /* {follower:<int>, setAt:<iso>} */
+    },
+    attend: {
+      url: '',          /* GET URLで JSON: { days8h: <int> } を返す自作API */
+      authHeader: '',
+      key: 'days8h',
+    },
+  };
+}
+
 function ensureStateShape() {
-  if (!state || typeof state !== 'object') state = {};
-  if (typeof state.name !== 'string' || !state.name) state.name = 'マメ太';
+  if (typeof state.name !== 'string' || !state.name) state.name = 'メインアカウント';
   if (!state.values || typeof state.values !== 'object') state.values = {};
   DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
     if (typeof state.values[i.key] !== 'number') state.values[i.key] = 0;
   }));
-  if (!state.targets || typeof state.targets !== 'object') state.targets = {};
+  if (!state.targets) state.targets = {};
   if (!Array.isArray(state.archives)) state.archives = [];
-  if (state.passwordHash === undefined) state.passwordHash = null;
+  if (!state.integration) state.integration = defaultIntegration();
+  // backward fill
+  const def = defaultIntegration();
+  ['sheet','ig','attend'].forEach(k => {
+    if (!state.integration[k]) state.integration[k] = def[k];
+    else state.integration[k] = Object.assign({}, def[k], state.integration[k]);
+  });
+  if (!state.baseline) state.baseline = { script_count: 0, setAt: null };
 }
 
-/* 目標値取得（targetsOverride を渡せばその目標、無ければ現在の state.targets を使用） */
-function targetOf(key, targetsOverride) {
-  const t = targetsOverride || state.targets;
-  if (t && t[key] != null && !isNaN(t[key])) return Number(t[key]);
+/* 旧フォーマット → v2 への移行 */
+function migrateLegacyState(record) {
+  if (!record) return null;
+  // 既にv2形式
+  if (record.values && !record.acc1 && !record.acc2 && typeof record.name === 'string') {
+    return record;
+  }
+  // 旧v3形式（acc1/acc2 あり）
+  if (record.acc1 || record.acc2) {
+    const a1 = (record.acc1 && record.acc1.values) || {};
+    const a2 = (record.acc2 && record.acc2.values) || {};
+    const merged = {};
+    DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+      merged[i.key] = (a1[i.key] || 0) + (a2[i.key] || 0);
+    }));
+    return {
+      name: (record.names && record.names.acc1) || 'メインアカウント',
+      values: merged,
+      targets: record.targets || {},
+      archives: record.archives || [],
+      passwordHash: record.passwordHash || null,
+    };
+  }
+  // 旧v1形式（values直下）
+  if (record.values && !record.acc1) {
+    return {
+      name: 'メインアカウント',
+      values: record.values || {},
+      targets: record.targets || {},
+      archives: record.archives || [],
+      passwordHash: record.passwordHash || null,
+    };
+  }
+  return record;
+}
+
+/* 目標値取得 */
+function getTarget(key) {
+  if (state.targets && state.targets[key] != null && !isNaN(state.targets[key])) {
+    return state.targets[key];
+  }
   return DEFAULT_TARGETS[key] || 1;
-}
-/* 旧名 getTarget の互換エイリアス */
-function getTarget(key) { return targetOf(key); }
-
-/* 値オブジェクトの合計（移行時のアカウント判定に使用） */
-function sumValues(values) {
-  if (!values || typeof values !== 'object') return 0;
-  return Object.values(values).reduce((a, v) => a + (Number(v) || 0), 0);
-}
-
-/* ----------------------------------------------------------------------
-   データ移行：旧2アカウント形式 → マメ太単独形式
-   （あさアカウントを切り離し、マメ太のデータだけを引き継ぐ）
-   ---------------------------------------------------------------------- */
-function migrateArchives(archives, pick) {
-  if (!Array.isArray(archives)) return [];
-  return archives.map(ar => {
-    if (!ar || typeof ar !== 'object') return null;
-    // すでに単独形式
-    if (ar.values && !ar.acc1 && !ar.acc2) {
-      return {
-        id: ar.id,
-        label: ar.label || ar.id,
-        archivedAt: ar.archivedAt || '',
-        name: ar.name || 'マメ太',
-        values: { ...ar.values },
-        targets: ar.targets ? { ...ar.targets } : {},
-        summary: ar.summary || computeSummary(ar.values || {}, ar.targets || {}),
-      };
-    }
-    // 2アカウント形式のアーカイブ → マメ太分を抽出
-    let p = pick;
-    if (!p) {
-      const n1 = (ar.names && ar.names.acc1 || '').toString();
-      const n2 = (ar.names && ar.names.acc2 || '').toString();
-      if (n1.includes('マメ太')) p = 'acc1';
-      else if (n2.includes('マメ太')) p = 'acc2';
-      else if (n1.includes('あさ')) p = 'acc2';
-      else if (n2.includes('あさ')) p = 'acc1';
-      else p = sumValues(ar.acc2 && ar.acc2.values) > sumValues(ar.acc1 && ar.acc1.values) ? 'acc2' : 'acc1';
-    }
-    const picked = ar[p] || { values: {} };
-    const vals = picked.values || {};
-    const tgts = ar.targets || {};
-    return {
-      id: ar.id,
-      label: ar.label || ar.id,
-      archivedAt: ar.archivedAt || '',
-      name: (ar.names && ar.names[p]) || 'マメ太',
-      values: { ...vals },
-      targets: { ...tgts },
-      summary: computeSummary(vals, tgts),
-    };
-  }).filter(Boolean);
-}
-
-function migrateRecord(record) {
-  if (!record || typeof record !== 'object') return null;
-
-  // すでにマメ太単独形式（acc1/acc2/names を持たない）
-  if (record.values && !record.acc1 && !record.acc2 && !record.names) {
-    return {
-      name: record.name || 'マメ太',
-      values: { ...record.values },
-      targets: record.targets ? { ...record.targets } : {},
-      archives: migrateArchives(record.archives || []),
-      passwordHash: record.passwordHash || null,
-      _legacy: record._legacy,
-    };
-  }
-
-  // 旧2アカウント形式 → マメ太アカウントを抽出
-  if (record.acc1 || record.acc2 || record.names) {
-    const names = record.names || {};
-    const n1 = (names.acc1 || '').toString();
-    const n2 = (names.acc2 || '').toString();
-    let pick = 'acc1';
-    if (n1.includes('マメ太')) pick = 'acc1';
-    else if (n2.includes('マメ太')) pick = 'acc2';
-    else if (n1.includes('あさ')) pick = 'acc2';
-    else if (n2.includes('あさ')) pick = 'acc1';
-    else {
-      const s1 = sumValues(record.acc1 && record.acc1.values);
-      const s2 = sumValues(record.acc2 && record.acc2.values);
-      pick = s2 > s1 ? 'acc2' : 'acc1';
-    }
-    const picked = record[pick] || { values: {} };
-    return {
-      name: (names[pick] && names[pick].toString()) || 'マメ太',
-      values: { ...(picked.values || {}) },
-      targets: record.targets ? { ...record.targets } : {},
-      archives: migrateArchives(record.archives || [], pick),
-      passwordHash: record.passwordHash || null,
-      // 念のため移行前の2アカウントデータをまるごと保管（万一の復元用）
-      _legacy: {
-        migratedAt: new Date().toISOString(),
-        pickedAccount: pick,
-        names: names,
-        acc1: record.acc1 || null,
-        acc2: record.acc2 || null,
-        archives: record.archives || [],
-      },
-    };
-  }
-
-  return null;
 }
 
 /* ==========================================================================
@@ -1017,12 +1151,11 @@ const API_BASE = 'https://api.jsonbin.io/v3/b';
 const API_KEY = '$2a$10$2mX558aCXaBUL7/hexaKfOgCqyp/..eBBfmIaVFBWCfY/E5RCzEre';
 let roomId = null;
 let pollTimer = null;
-let pushTimer = null;       // デバウンス用：1秒入力が止まったら自動でクラウドにpush
-let isPushing = false;      // push中フラグ（push中はポーリングを止める）
-let lastLocalEdit = 0;      // 最後のローカル編集時刻
-let editedPaths = new Set();// 編集された値のパス（マージ用）
+let pushTimer = null;
+let isPushing = false;
+let lastLocalEdit = 0;
+let editedPaths = new Set();
 
-/* オブジェクトのパス操作 */
 function getByPath(obj, path) {
   return path.split('.').reduce((o, p) => o == null ? undefined : o[p], obj);
 }
@@ -1037,9 +1170,7 @@ function setByPath(obj, path, val) {
   }
   cur[parts[parts.length - 1]] = val;
 }
-function markEdited(path) {
-  editedPaths.add(path);
-}
+function markEdited(path) { editedPaths.add(path); }
 
 function getRoomIdFromHash() {
   const m = location.hash.match(/room=([a-zA-Z0-9_-]+)/);
@@ -1092,23 +1223,18 @@ async function fetchRoom(silent = false) {
     if (!res.ok) throw new Error('fetch failed: ' + res.status);
     const data = await res.json();
     let record = data.record || data;
+    record = migrateLegacyState(record);
     if (record) {
-      // どのフォーマットでもマメ太単独形式へ移行
-      const migrated = migrateRecord(record);
-      if (migrated) record = migrated;
-      // 自分のローカル編集（未push）を保護
       const localEdits = {};
       for (const path of editedPaths) {
         localEdits[path] = getByPath(state, path);
       }
       state = record;
       ensureStateShape();
-      // ローカル編集を上書き保護
       for (const [path, val] of Object.entries(localEdits)) {
         setByPath(state, path, val);
       }
       saveLocal();
-      // フォーカス中の入力欄を保護してDOMを更新
       syncDomToState();
     }
     setSyncStatus('ok', '共有中');
@@ -1123,39 +1249,32 @@ async function pushRoom(showToastFlag = true) {
   isPushing = true;
   setSyncStatus('syncing', '保存中...');
 
-  // 今回pushする編集パスを確保（push中に新しい編集が入っても次回まで保持）
   const pathsToPush = new Set(editedPaths);
-  // 自分の編集値を保存（後でマージで使う）
   const myEdits = {};
   for (const path of pathsToPush) {
     myEdits[path] = getByPath(state, path);
   }
 
   try {
-    // ① まずクラウドの最新を取得して、相手の変更を取り込む
     try {
       const fetchRes = await fetch(API_BASE + '/' + roomId + '/latest', {
         headers: { 'X-Master-Key': API_KEY },
       });
       if (fetchRes.ok) {
         const fetchData = await fetchRes.json();
-        let cloudState = fetchData.record || fetchData;
-        // どのフォーマットでもマメ太単独形式へ移行
-        const migratedCloud = migrateRecord(cloudState);
-        if (migratedCloud) cloudState = migratedCloud;
-        // クラウドをベースにして、自分の編集値を上書きする
-        state = cloudState;
-        ensureStateShape();
-        // 自分が編集した項目だけ自分の値で上書き
-        for (const [path, val] of Object.entries(myEdits)) {
-          setByPath(state, path, val);
+        let cloudState = migrateLegacyState(fetchData.record || fetchData);
+        if (cloudState) {
+          state = cloudState;
+          ensureStateShape();
+          for (const [path, val] of Object.entries(myEdits)) {
+            setByPath(state, path, val);
+          }
         }
       }
     } catch (e) {
       console.warn('Pre-push fetch failed, pushing local state', e);
     }
 
-    // ② マージしたstateをクラウドにPUT
     const res = await fetch(API_BASE + '/' + roomId, {
       method:'PUT',
       headers:{
@@ -1166,15 +1285,12 @@ async function pushRoom(showToastFlag = true) {
     });
     if (!res.ok) throw new Error('push failed: ' + res.status);
 
-    // 成功：今回pushしたパスを編集リストから削除
     for (const path of pathsToPush) {
       editedPaths.delete(path);
     }
 
     setSyncStatus('ok', '共有中');
     if (showToastFlag) showToast('保存しました', 'success');
-
-    // マージで他項目が変わっている可能性があるので、フォーカス中以外のUIを更新
     syncDomToState();
   } catch (e) {
     console.error(e);
@@ -1186,55 +1302,43 @@ async function pushRoom(showToastFlag = true) {
   saveLocal();
 }
 
-/* DOMの値をstateに合わせる（フォーカス中の入力欄は触らない） */
 function syncDomToState() {
   const active = document.activeElement;
-  // 入力ページの実績入力欄を更新
-  document.querySelectorAll('input.val-input').forEach(el => {
+  document.querySelectorAll('input[type="number"][data-key][data-kind="value"]').forEach(el => {
     if (el === active) return;
     const key = el.dataset.key;
     const val = state.values[key] || 0;
     if (Number(el.value) !== val) el.value = val;
   });
-  // 設定ページの目標入力欄を更新
-  document.querySelectorAll('input.tgt-input').forEach(el => {
+  document.querySelectorAll('input[type="number"][data-key][data-kind="target"]').forEach(el => {
     if (el === active) return;
     const key = el.dataset.key;
-    const val = targetOf(key);
+    const val = (state.targets && state.targets[key] != null) ? state.targets[key] : (DEFAULT_TARGETS[key] || 1);
     if (Number(el.value) !== val) el.value = val;
   });
-  // アカウント名入力欄を更新
   const nameEl = document.getElementById('accNameInput');
   if (nameEl && nameEl !== active) nameEl.value = state.name || '';
-  // タブのアカウント名を更新
-  renderNames();
-  // ランク昇格バッジ・スコア表示を更新（フォーカスは保持）
-  refreshRankUpDisplay();
-  // ダッシュボードと履歴は入力欄が無いので常に再描画OK
   renderDashboard();
   renderArchive();
 }
 
-/* デバウンスpush：入力が止まってから1秒後に自動push */
 function debouncedPush() {
   lastLocalEdit = Date.now();
   if (pushTimer) clearTimeout(pushTimer);
   pushTimer = setTimeout(() => {
     pushTimer = null;
-    pushRoom(false); // トースト通知なしで静かに保存
+    pushRoom(false);
   }, 1000);
 }
 
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(() => {
-    // 入力中・push待ち・push中はポーリングをスキップ（入力消失防止）
     const active = document.activeElement;
     const isTyping = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
     if (isTyping) return;
     if (pushTimer) return;
     if (isPushing) return;
-    // 直近2秒以内に編集があった場合もスキップ
     if (Date.now() - lastLocalEdit < 2000) return;
     fetchRoom(true);
   }, 5000);
@@ -1245,14 +1349,14 @@ function saveLocal() {
 }
 function loadLocal() {
   try {
-    const keys = ['progress_state_v4', 'progress_state_v3', 'progress_state_v2', 'progress_state'];
-    for (const k of keys) {
-      const raw = localStorage.getItem(k);
-      if (raw) {
-        const migrated = migrateRecord(JSON.parse(raw));
-        if (migrated) { state = migrated; break; }
-      }
-    }
+    const s4 = localStorage.getItem('progress_state_v4');
+    if (s4) { state = JSON.parse(s4); ensureStateShape(); return; }
+    const s3 = localStorage.getItem('progress_state_v3');
+    if (s3) { state = migrateLegacyState(JSON.parse(s3)); ensureStateShape(); return; }
+    const s2 = localStorage.getItem('progress_state_v2');
+    if (s2) { state = migrateLegacyState(JSON.parse(s2)); ensureStateShape(); return; }
+    const s1 = localStorage.getItem('progress_state');
+    if (s1) { state = migrateLegacyState(JSON.parse(s1)); ensureStateShape(); return; }
   } catch(e){}
   ensureStateShape();
 }
@@ -1269,7 +1373,6 @@ async function initSync() {
   } else {
     await createRoom();
   }
-  // 認証チェック
   await checkAuthentication();
   if (isAuthenticated) {
     startPolling();
@@ -1288,12 +1391,10 @@ async function sha256(str) {
 
 async function checkAuthentication() {
   const lockOverlay = document.getElementById('lockOverlay');
-  // パスワード未設定（初回）
   if (!state.passwordHash) {
     showSetPasswordScreen();
     return false;
   }
-  // 端末に認証トークンがあるか確認
   const authKey = 'auth_' + (roomId || 'local');
   const savedHash = localStorage.getItem(authKey);
   if (savedHash === state.passwordHash) {
@@ -1301,7 +1402,6 @@ async function checkAuthentication() {
     lockOverlay.classList.add('hidden');
     return true;
   }
-  // 入力を求める
   showEnterPasswordScreen();
   return false;
 }
@@ -1338,7 +1438,6 @@ async function onLockSubmit() {
     errEl.textContent = '6文字以上のパスワードを入力してください';
     return;
   }
-  // 初回設定モードかチェック
   if (!state.passwordHash) {
     const confirm = document.getElementById('lockPwdConfirm').value;
     if (pwd !== confirm) {
@@ -1406,7 +1505,6 @@ function logout() {
   location.reload();
 }
 
-/* Enterキーで送信 */
 document.addEventListener('DOMContentLoaded', () => {
   ['lockPwd','lockPwdConfirm'].forEach(id => {
     const el = document.getElementById(id);
@@ -1417,217 +1515,155 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ==========================================================================
    スコア計算
    ========================================================================== */
-function computeCategoryScore(c, values, targetsOverride) {
-  const vals = values || state.values;
+function computeCategoryScore(c, valuesOverride, targetsOverride) {
+  const v = valuesOverride || state.values;
+  const tFn = key => targetsOverride && targetsOverride[key] != null ? targetsOverride[key] : getTarget(key);
   let score = 0;
   c.inputs.forEach(i => {
-    const v = (vals && vals[i.key]) || 0;
-    const ratio = Math.min(1, v / targetOf(i.key, targetsOverride));
+    const t = tFn(i.key);
+    const ratio = Math.min(1, (v[i.key] || 0) / t);
     score += ratio * i.weight;
   });
   const weightSum = c.inputs.reduce((a, x) => a + x.weight, 0);
   return (score / weightSum) * c.max;
 }
 
-function computeTotal(values, targetsOverride) {
-  let total = 0;
-  DEFAULT_CATEGORIES.forEach(c => total += computeCategoryScore(c, values, targetsOverride));
-  return total;
+function computeSectionScore(section, valuesOverride, targetsOverride) {
+  return DEFAULT_CATEGORIES
+    .filter(c => c.section === section)
+    .reduce((s, c) => s + computeCategoryScore(c, valuesOverride, targetsOverride), 0);
+}
+
+function computeTotal(valuesOverride, targetsOverride) {
+  return DEFAULT_CATEGORIES.reduce((s, c) => s + computeCategoryScore(c, valuesOverride, targetsOverride), 0);
 }
 
 function rankFromPct(pct) {
-  let cur = RANK_TIERS[0];
-  for (const t of RANK_TIERS) { if (pct >= t.min) cur = t; }
-  return { rank: cur.rank, salary: cur.salary };
-}
-
-/* 現在の達成度から「一つ上のランク」の情報を返す。最高ランク(S)なら null */
-function nextRankInfo(pct) {
-  for (const t of RANK_TIERS) {
-    if (t.min > pct) return t;
-  }
-  return null;
-}
-
-/* values から サマリー（スコア・達成度・ランク・業績給）を計算 */
-function computeSummary(values, targetsOverride) {
-  const totalScore = computeTotal(values, targetsOverride);
-  const totalPercent = (totalScore / TOTAL_MAX) * 100;
-  const r = rankFromPct(totalPercent);
-  return { totalScore, totalPercent, rank: r.rank, salary: r.salary };
-}
-
-/* 「全項目をそろえて総合達成度 pct% にする」場合の、その項目の必要値（比例配分）。
-   全項目を達成率 p にすると総合達成度は p × MAX_ACHIEVABLE_PCT になるので、
-   総合 pct% にするには p = pct / MAX_ACHIEVABLE_PCT。 */
-function evenTargetForItem(key, pct) {
-  const p = pct / MAX_ACHIEVABLE_PCT;
-  return Math.ceil(targetOf(key) * p);
-}
-
-/* 「現実的に一つ上を狙えるランク」。配点の都合で到達不可能なランク
-   （例：カテゴリ配点合計が満点に届かない時の S ランク）しか残っていない場合は null。 */
-function practicalNextRank(pct) {
-  const nr = nextRankInfo(pct);
-  if (!nr) return null;
-  if (nr.min > MAX_ACHIEVABLE_PCT + 1e-9) return null;
-  return nr;
+  if (pct >= 95) return { rank:'S', salary:50000 };
+  if (pct >= 85) return { rank:'A', salary:40000 };
+  if (pct >= 70) return { rank:'B', salary:28000 };
+  if (pct >= 55) return { rank:'C', salary:15000 };
+  return { rank:'D', salary:5000 };
 }
 
 /* ==========================================================================
    レンダリング
    ========================================================================== */
+function renderCategoryCard(c) {
+  const score = computeCategoryScore(c);
+  const pct = (score / c.max) * 100;
+  const breakdownItems = c.inputs.map(i => {
+    const v = state.values[i.key] || 0;
+    const srcInfo = i.source ? SOURCE_INFO[i.source] : null;
+    const srcChip = srcInfo
+      ? ` <span class="source-pill" data-src="${i.source}" title="${srcInfo.tip}" style="font-size:9px;padding:2px 6px;margin-left:4px;">${srcInfo.label}</span>`
+      : '';
+    return `<span>${i.label}: <b>${v}</b>${i.unit} <span style="color:#95a5a6;">/ 目標${getTarget(i.key)}${i.unit}</span>${srcChip}</span>`;
+  }).join('');
+  const div = document.createElement('div');
+  div.className = 'category';
+  div.innerHTML = `
+    <div class="cat-header">
+      <div class="cat-title">
+        <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
+        <span>${c.name}</span>
+      </div>
+      <div class="cat-points">
+        <span class="current">${score.toFixed(0)}</span> / ${c.max}点
+      </div>
+    </div>
+    <div class="progress-row">
+      <div class="progress-bar">
+        <div class="progress-fill" style="background:${c.color}; width:${pct}%;"></div>
+      </div>
+      <div class="progress-percent">${pct.toFixed(0)}%</div>
+    </div>
+    <div class="cat-detail">${c.desc}</div>
+    <div class="cat-breakdown">${breakdownItems}</div>
+  `;
+  return div;
+}
+
 function renderDashboard() {
-  const area = document.getElementById('categoriesArea');
-  area.innerHTML = '';
-  const curTotal = computeTotal(state.values);
-  const curPct = (curTotal / TOTAL_MAX) * 100;
-  const nr = practicalNextRank(curPct);
-
+  const perfArea = document.getElementById('perfCategoriesArea');
+  const hrArea = document.getElementById('hrCategoriesArea');
+  perfArea.innerHTML = '';
+  hrArea.innerHTML = '';
   DEFAULT_CATEGORIES.forEach(c => {
-    const score = computeCategoryScore(c, state.values);
-    const pct = (score / c.max) * 100;
-    const breakdownItems = c.inputs.map(i => {
-      const v = state.values[i.key] || 0;
-      const tgt = targetOf(i.key);
-      let extra = '';
-      if (nr) {
-        const ru = evenTargetForItem(i.key, nr.min);
-        const ok = v >= ru;
-        extra = ` <span style="color:${ok ? '#0e8a5f' : '#c9760a'};">(${nr.rank}まで ${ru}${i.unit}${ok ? ' ✓' : ''})</span>`;
-      }
-      return `<span>${i.label}: <b>${v}</b>${i.unit} <span style="color:#95a5a6;">/ 目標${tgt}${i.unit}</span>${extra}</span>`;
-    }).join('');
-    const div = document.createElement('div');
-    div.className = 'category';
-    div.innerHTML = `
-      <div class="cat-header">
-        <div class="cat-title">
-          <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
-          <span>${c.name}</span>
-        </div>
-        <div class="cat-points">
-          <span class="current">${score.toFixed(0)}</span> / ${c.max}点
-        </div>
-      </div>
-      <div class="progress-row">
-        <div class="progress-bar">
-          <div class="progress-fill" style="background:${c.color}; width:${pct}%;"></div>
-        </div>
-        <div class="progress-percent">${pct.toFixed(0)}%</div>
-      </div>
-      <div class="cat-detail">${c.desc}</div>
-      <div class="cat-breakdown">${breakdownItems}</div>
-    `;
-    area.appendChild(div);
+    const card = renderCategoryCard(c);
+    if (c.section === 'perf') perfArea.appendChild(card);
+    else hrArea.appendChild(card);
   });
+  const perfScore = computeSectionScore('perf');
+  const hrScore = computeSectionScore('hr');
+  const total = perfScore + hrScore;
+  const totalPct = (total / TOTAL_MAX) * 100;
 
-  document.getElementById('totalScore').textContent = curTotal.toFixed(0);
-  document.getElementById('totalPercent').textContent = curPct.toFixed(1);
-  document.getElementById('totalBarFill').style.width = curPct + '%';
-  const r = rankFromPct(curPct);
+  document.getElementById('totalScore').textContent = total.toFixed(0);
+  document.getElementById('totalPercent').textContent = totalPct.toFixed(1);
+  document.getElementById('totalBarFill').style.width = totalPct + '%';
+
+  document.getElementById('perfScore').textContent = perfScore.toFixed(0);
+  document.getElementById('perfBarFill').style.width = ((perfScore / PERF_MAX) * 100) + '%';
+  document.getElementById('perfSectionScore').textContent = perfScore.toFixed(0);
+
+  document.getElementById('hrScore').textContent = hrScore.toFixed(0);
+  document.getElementById('hrBarFill').style.width = ((hrScore / HR_MAX) * 100) + '%';
+  document.getElementById('hrSectionScore').textContent = hrScore.toFixed(0);
+
+  const r = rankFromPct(totalPct);
   const badge = document.getElementById('rankBadge');
   badge.textContent = r.rank;
   badge.className = 'rank-badge rank-' + r.rank;
   document.getElementById('salaryAmount').textContent = r.salary.toLocaleString();
-
-  // 「現在の評価」カードに、次ランクまでの残り点数を表示
-  const hint = document.getElementById('rankUpHint');
-  if (hint) {
-    if (nr) {
-      const need = (nr.min / 100) * TOTAL_MAX - curTotal;
-      hint.textContent = `${nr.rank}ランク（達成度${nr.min}%）まで あと ${Math.max(0, need).toFixed(0)}点`;
-    } else {
-      hint.textContent = (r.rank === 'S') ? '🏆 最高ランク達成中' : '🏆 現在の配点での最高到達ランク';
-    }
-  }
-}
-
-/* 入力ページ上部「ランク昇格サマリー」を更新（DOM差し替えなし＝フォーカス保持） */
-function updateRankUpSummary(curTotal, curPct, nr) {
-  const box = document.getElementById('rankUpSummary');
-  if (!box) return;
-  const r = rankFromPct(curPct);
-  if (nr) {
-    const need = (nr.min / 100) * TOTAL_MAX - curTotal;
-    box.innerHTML = `📊 現在 <b>${r.rank}ランク</b>（達成度 ${curPct.toFixed(1)}% ／ ${curTotal.toFixed(0)}点）。`
-      + `<b>${nr.rank}ランク</b>（達成度 ${nr.min}%・業績給 ¥${nr.salary.toLocaleString()}）まで あと <b>${Math.max(0, need).toFixed(0)}点</b>。<br>`
-      + `各項目の <b>「${nr.rank}まで ◯◯」</b> は、全項目をそろえて ${nr.rank}ランクに届かせるための目安値です。`;
-  } else if (r.rank === 'S') {
-    box.innerHTML = `🏆 現在 <b>Sランク</b>（達成度 ${curPct.toFixed(1)}%）。最高ランクを達成中です。`;
-  } else {
-    box.innerHTML = `🏆 現在 <b>${r.rank}ランク</b>（達成度 ${curPct.toFixed(1)}%）。`
-      + `これは現在の配点で到達できる最高ランクです（6カテゴリの配点合計 ${CATEGORY_MAX_SUM}点 ＝ 達成度 ${MAX_ACHIEVABLE_PCT.toFixed(0)}% が上限）。`;
-  }
-}
-
-/* ランク昇格バッジ・スコア表示を、DOMを作り直さずに更新（入力中のフォーカスを保持） */
-function refreshRankUpDisplay() {
-  const curTotal = computeTotal(state.values);
-  const curPct = (curTotal / TOTAL_MAX) * 100;
-  const nr = practicalNextRank(curPct);
-  const scoreEl = document.getElementById('accScoreDisplay');
-  if (scoreEl) scoreEl.textContent = `スコア: ${curTotal.toFixed(0)} / 1000点`;
-  updateRankUpSummary(curTotal, curPct, nr);
-  document.querySelectorAll('.rankup-target').forEach(span => {
-    const key = span.dataset.key;
-    if (!key) return;
-    const item = INPUT_BY_KEY[key];
-    if (!item) return;
-    const v = state.values[key] || 0;
-    if (nr) {
-      const ru = evenTargetForItem(key, nr.min);
-      const cleared = v >= ru;
-      span.className = 'target rankup-target' + (cleared ? ' cleared' : '');
-      span.textContent = `${cleared ? '✓' : '⬆'} ${nr.rank}まで ${ru}${item.unit}`;
-    } else {
-      span.className = 'target rankup-target cleared';
-      span.textContent = '🏆 最高ランク';
-    }
-  });
 }
 
 function renderInput() {
-  const area = document.getElementById('accInputArea');
-  if (!area) return;
-  area.innerHTML = '';
-  const curTotal = computeTotal(state.values);
-  const curPct = (curTotal / TOTAL_MAX) * 100;
-  const nr = practicalNextRank(curPct);
-  updateRankUpSummary(curTotal, curPct, nr);
-
+  const perfArea = document.getElementById('perfInputArea');
+  const hrArea = document.getElementById('hrInputArea');
+  perfArea.innerHTML = '';
+  hrArea.innerHTML = '';
   DEFAULT_CATEGORIES.forEach(c => {
-    const score = computeCategoryScore(c, state.values);
+    const score = computeCategoryScore(c);
     const card = document.createElement('div');
-    card.className = 'input-card';
+    card.className = 'input-card' + (c.section === 'hr' ? ' section-hr' : '');
     let inputsHtml = '';
     c.inputs.forEach(i => {
       const val = state.values[i.key] || 0;
-      const tgt = targetOf(i.key);
-      let rankupHtml;
-      if (nr) {
-        const ru = evenTargetForItem(i.key, nr.min);
-        const cleared = val >= ru;
-        rankupHtml = `<span class="target rankup-target${cleared ? ' cleared' : ''}" data-key="${i.key}">${cleared ? '✓' : '⬆'} ${nr.rank}まで ${ru}${i.unit}</span>`;
-      } else {
-        rankupHtml = `<span class="target rankup-target cleared" data-key="${i.key}">🏆 最高ランク</span>`;
+      const tgt = getTarget(i.key);
+      const dailyHint = i.dailyHint ? `<span class="daily-hint">目安: ${i.dailyHint}</span>` : '';
+      const srcInfo = i.source ? SOURCE_INFO[i.source] : null;
+      let sourcePill = '';
+      if (srcInfo) {
+        let inner = srcInfo.label;
+        if (i.source === 'sheet') {
+          inner = `<a href="${SHEET_URL}" target="_blank" rel="noopener">${srcInfo.label}</a>`;
+        } else if (i.source === 'instagram') {
+          inner = `<a href="${IG_URL}" target="_blank" rel="noopener">${srcInfo.label}</a>`;
+        }
+        sourcePill = `<span class="source-pill" data-src="${i.source}" title="${srcInfo.tip}">${inner}</span>`;
       }
       inputsHtml += `
         <div class="input-row">
           <label>${i.label}</label>
-          <input type="number" min="0" step="1" value="${val}" class="val-input"
-            data-key="${i.key}" oninput="onInputChange(this)">
+          <input type="number" min="0" step="1" value="${val}"
+            data-key="${i.key}" data-kind="value" oninput="onInputChange(this)">
           <span class="unit">${i.unit}</span>
-          <span class="target">単独目標 ${tgt}${i.unit}</span>
-          ${rankupHtml}
+          <span class="target">月間目標 ${tgt}${i.unit}</span>
+          ${dailyHint}
+          ${sourcePill}
         </div>
       `;
     });
+    const sectionLabel = c.section === 'perf'
+      ? '<span class="section-label">業績</span>'
+      : '<span class="section-label hr">人事</span>';
     card.innerHTML = `
       <div class="input-card-header">
         <div class="input-card-title">
           <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
           <span>${c.name}</span>
+          ${sectionLabel}
         </div>
         <div class="cat-points">
           <span class="current">${score.toFixed(0)}</span> / ${c.max}点
@@ -1635,13 +1671,36 @@ function renderInput() {
       </div>
       ${inputsHtml}
     `;
-    area.appendChild(card);
+    if (c.section === 'perf') perfArea.appendChild(card);
+    else hrArea.appendChild(card);
   });
-  const scoreEl = document.getElementById('accScoreDisplay');
-  if (scoreEl) scoreEl.textContent = `スコア: ${curTotal.toFixed(0)} / 1000点`;
+  const total = computeTotal();
+  document.getElementById('accScoreDisplay').textContent = `合計: ${total.toFixed(0)} / 1000点（業績 ${computeSectionScore('perf').toFixed(0)}/${PERF_MAX} ・ 人事 ${computeSectionScore('hr').toFixed(0)}/${HR_MAX}）`;
 }
 
 function renderSettings() {
+  /* 連携設定の入力フィールドを現在のstateで埋める */
+  const fill = (id, val) => { const el = document.getElementById(id); if (el && el !== document.activeElement) el.value = val || ''; };
+  if (state.integration) {
+    const s = state.integration.sheet || {};
+    fill('igSheetId',   s.id);
+    fill('igSheetName', s.name);
+    const ig = state.integration.ig || {};
+    fill('igToken',  ig.token);
+    fill('igUserId', ig.igUserId);
+    const baseEl = document.getElementById('igBaselineInfo');
+    if (baseEl) {
+      if (ig.baseline && typeof ig.baseline.follower === 'number') {
+        baseEl.textContent = `フォロワー基準: ${ig.baseline.follower}人 / 設定日: ${(ig.baseline.setAt||'').slice(0,10)}`;
+      } else {
+        baseEl.textContent = '未設定（次回 Instagram 取得時に自動設定）';
+      }
+    }
+    const at = state.integration.attend || {};
+    fill('attendUrl',  at.url);
+    fill('attendAuth', at.authHeader);
+    fill('attendKey',  at.key);
+  }
   const area = document.getElementById('settingsArea');
   area.innerHTML = '';
   DEFAULT_CATEGORIES.forEach(c => {
@@ -1649,22 +1708,26 @@ function renderSettings() {
     card.className = 'settings-card';
     let rowsHtml = '';
     c.inputs.forEach(i => {
-      const cur = targetOf(i.key);
+      const cur = getTarget(i.key);
       const def = DEFAULT_TARGETS[i.key];
       rowsHtml += `
         <div class="settings-row">
           <label>${i.label} <span class="default">（初期値: ${def}${i.unit}）</span></label>
-          <input type="number" min="1" step="1" value="${cur}" class="tgt-input"
-            data-key="${i.key}" oninput="onTargetChange(this)">
+          <input type="number" min="1" step="1" value="${cur}"
+            data-key="${i.key}" data-kind="target" oninput="onTargetChange(this)">
           <span class="unit">${i.unit}</span>
         </div>
       `;
     });
+    const sectionLabel = c.section === 'perf'
+      ? '<span class="section-label">業績</span>'
+      : '<span class="section-label hr">人事</span>';
     card.innerHTML = `
       <div class="input-card-header">
         <div class="input-card-title">
           <span class="icon" style="background:${c.iconColor};">${c.icon}</span>
           <span>${c.name}</span>
+          ${sectionLabel}
         </div>
       </div>
       ${rowsHtml}
@@ -1680,8 +1743,7 @@ function renderArchive() {
     area.innerHTML = `<div class="archive-empty">📭 まだ履歴はありません<br>月末に「今月をアーカイブ」ボタンで記録できます</div>`;
     return;
   }
-  // 新しい順
-  const sorted = [...state.archives].sort((a, b) => (b.archivedAt || '').localeCompare(a.archivedAt || ''));
+  const sorted = [...state.archives].sort((a, b) => b.archivedAt.localeCompare(a.archivedAt));
   sorted.forEach(ar => {
     const r = ar.summary || {};
     const rankClass = 'rank-' + (r.rank || 'D');
@@ -1693,12 +1755,16 @@ function renderArchive() {
         <div class="ar-month-sub">${(ar.archivedAt||'').slice(0,10)} 確定</div>
       </div>
       <div class="ar-item">
-        <div class="lbl">スコア</div>
+        <div class="lbl">合計</div>
         <div class="val">${(r.totalScore||0).toFixed(0)} / 1000</div>
       </div>
       <div class="ar-item">
-        <div class="lbl">達成度</div>
-        <div class="val">${(r.totalPercent||0).toFixed(1)}%</div>
+        <div class="lbl">業績</div>
+        <div class="val">${(r.perfScore||0).toFixed(0)} / ${PERF_MAX}</div>
+      </div>
+      <div class="ar-item">
+        <div class="lbl">人事</div>
+        <div class="val">${(r.hrScore||0).toFixed(0)} / ${HR_MAX}</div>
       </div>
       <div class="ar-item">
         <div class="lbl">業績給</div>
@@ -1716,39 +1782,34 @@ function renderArchive() {
   });
 }
 
-function renderNames() {
-  const n = state.name || 'マメ太';
-  const tab = document.getElementById('tabAccName');
-  if (tab) tab.textContent = n;
+function renderName() {
   const el = document.getElementById('accNameInput');
-  if (el && el !== document.activeElement) el.value = n;
+  if (el) el.value = state.name || '';
 }
 
 function renderAll() {
-  renderNames();
+  renderName();
   renderDashboard();
   renderInput();
   renderArchive();
   renderSettings();
 }
 
-/* 入力変更（DOMは作り直さず、フォーカスを保持したまま数値だけ更新） */
+/* 入力変更 */
 function onInputChange(el) {
   const key = el.dataset.key;
   const val = Math.max(0, Number(el.value) || 0);
   state.values[key] = val;
-  markEdited('values.' + key); // 編集パスを記録（マージ用）
+  markEdited('values.' + key);
   saveLocal();
-  debouncedPush(); // 1秒後に自動でクラウドに保存
-  // カテゴリスコアをその場で更新
+  debouncedPush();
   const card = el.closest('.input-card');
   const cat = DEFAULT_CATEGORIES.find(c => c.inputs.some(i => i.key === key));
   if (cat && card) {
-    const cur = card.querySelector('.cat-points .current');
-    if (cur) cur.textContent = computeCategoryScore(cat, state.values).toFixed(0);
+    card.querySelector('.cat-points .current').textContent = computeCategoryScore(cat).toFixed(0);
   }
-  // ランク昇格バッジ・スコア・サマリーをその場で更新（フォーカス保持）
-  refreshRankUpDisplay();
+  const total = computeTotal();
+  document.getElementById('accScoreDisplay').textContent = `合計: ${total.toFixed(0)} / 1000点（業績 ${computeSectionScore('perf').toFixed(0)}/${PERF_MAX} ・ 人事 ${computeSectionScore('hr').toFixed(0)}/${HR_MAX}）`;
   renderDashboard();
 }
 
@@ -1761,7 +1822,6 @@ function onTargetChange(el) {
   markEdited('targets.' + key);
   saveLocal();
   debouncedPush();
-  // ダッシュボードと入力ページ（スコア・目標・昇格目安）を再計算
   renderDashboard();
   renderInput();
 }
@@ -1769,27 +1829,25 @@ function onTargetChange(el) {
 function resetTargetsToDefault() {
   if (!confirm('すべての目標値を初期値に戻します。よろしいですか？\n（入力済みの実績データは保持されます）')) return;
   state.targets = {};
-  markEdited('targets');
   saveLocal();
-  debouncedPush();
   renderAll();
   showToast('目標を初期値に戻しました', 'success');
 }
 
 /* アカウント名 */
 function onAccountNameChange(val) {
-  state.name = val || 'マメ太';
+  state.name = val || 'メインアカウント';
   markEdited('name');
   saveLocal();
   debouncedPush();
-  renderNames();
-  renderDashboard();
 }
 
 /* アーカイブ操作 */
 function archiveCurrentMonth() {
-  // 何も入力されていない場合は警告
-  const anyInput = DEFAULT_CATEGORIES.some(c => c.inputs.some(i => (state.values[i.key] || 0) > 0));
+  let anyInput = false;
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    if ((state.values[i.key] || 0) > 0) anyInput = true;
+  }));
   if (!anyInput) {
     if (!confirm('入力値がすべて0です。それでもアーカイブしますか？')) return;
   }
@@ -1797,12 +1855,16 @@ function archiveCurrentMonth() {
   const y = now.getFullYear();
   const m = (now.getMonth() + 1).toString().padStart(2, '0');
   const baseId = `${y}-${m}`;
-  // 同月が既にあれば連番をつける
   let id = baseId;
   let suffix = 2;
   while (state.archives.some(a => a.id === id)) {
     id = `${baseId}-${suffix++}`;
   }
+  const perfScore = computeSectionScore('perf');
+  const hrScore = computeSectionScore('hr');
+  const totalScore = perfScore + hrScore;
+  const totalPercent = (totalScore / TOTAL_MAX) * 100;
+  const r = rankFromPct(totalPercent);
   const archive = {
     id,
     label: `${y}年${parseInt(m)}月`,
@@ -1810,13 +1872,16 @@ function archiveCurrentMonth() {
     name: state.name,
     values: { ...state.values },
     targets: { ...state.targets },
-    summary: computeSummary(state.values, state.targets),
+    summary: {
+      totalScore, totalPercent,
+      perfScore, hrScore,
+      rank: r.rank, salary: r.salary,
+    }
   };
   state.archives.push(archive);
-  // 入力値リセット
-  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { state.values[i.key] = 0; }));
-  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { markEdited('values.' + i.key); }));
-  markEdited('archives');
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
+    state.values[i.key] = 0;
+  }));
   saveLocal();
   pushRoom();
   renderAll();
@@ -1826,7 +1891,6 @@ function archiveCurrentMonth() {
 function deleteArchive(id) {
   if (!confirm('この履歴を削除します。よろしいですか？')) return;
   state.archives = state.archives.filter(a => a.id !== id);
-  markEdited('archives');
   saveLocal();
   pushRoom();
   renderArchive();
@@ -1837,23 +1901,31 @@ function viewArchive(id) {
   const ar = state.archives.find(a => a.id === id);
   if (!ar) return;
   let detailHtml = `<h2>${ar.label} の詳細</h2>`;
-  detailHtml += `<div style="font-size:12px;color:#7f8c9b;margin-bottom:14px;">確定日時: ${(ar.archivedAt||'').replace('T',' ').slice(0,16)} ／ アカウント: ${ar.name || 'マメ太'}</div>`;
-  detailHtml += `<div style="display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;">
-    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
-      <div style="font-size:11px;color:#7f8c9b;">スコア</div>
-      <div style="font-size:22px;font-weight:700;">${(ar.summary.totalScore||0).toFixed(0)} / 1000</div>
+  detailHtml += `<div style="font-size:12px;color:#7f8c9b;margin-bottom:14px;">確定日時: ${(ar.archivedAt||'').replace('T',' ').slice(0,16)} ／ ${ar.name||''}</div>`;
+  detailHtml += `<div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:110px;">
+      <div style="font-size:11px;color:#7f8c9b;">合計</div>
+      <div style="font-size:20px;font-weight:700;">${(ar.summary.totalScore||0).toFixed(0)} / 1000</div>
     </div>
-    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+    <div style="flex:1;background:#e7f7f3;padding:12px;border-radius:8px;text-align:center;min-width:110px;">
+      <div style="font-size:11px;color:#11998e;">業績評価</div>
+      <div style="font-size:20px;font-weight:700;color:#11998e;">${(ar.summary.perfScore||0).toFixed(0)} / ${PERF_MAX}</div>
+    </div>
+    <div style="flex:1;background:#e8f4f7;padding:12px;border-radius:8px;text-align:center;min-width:110px;">
+      <div style="font-size:11px;color:#2193b0;">人事評価</div>
+      <div style="font-size:20px;font-weight:700;color:#2193b0;">${(ar.summary.hrScore||0).toFixed(0)} / ${HR_MAX}</div>
+    </div>
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:90px;">
       <div style="font-size:11px;color:#7f8c9b;">達成度</div>
-      <div style="font-size:22px;font-weight:700;">${(ar.summary.totalPercent||0).toFixed(1)}%</div>
+      <div style="font-size:20px;font-weight:700;">${(ar.summary.totalPercent||0).toFixed(1)}%</div>
     </div>
-    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:80px;">
       <div style="font-size:11px;color:#7f8c9b;">評価</div>
-      <div style="font-size:22px;font-weight:900;">${ar.summary.rank}</div>
+      <div style="font-size:20px;font-weight:900;">${ar.summary.rank}</div>
     </div>
-    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:120px;">
+    <div style="flex:1;background:#f8f9fc;padding:12px;border-radius:8px;text-align:center;min-width:110px;">
       <div style="font-size:11px;color:#7f8c9b;">業績給</div>
-      <div style="font-size:22px;font-weight:700;color:#11998e;">¥${(ar.summary.salary||0).toLocaleString()}</div>
+      <div style="font-size:20px;font-weight:700;color:#11998e;">¥${(ar.summary.salary||0).toLocaleString()}</div>
     </div>
   </div>`;
   detailHtml += `<table style="width:100%;border-collapse:collapse;font-size:12px;">
@@ -1861,21 +1933,22 @@ function viewArchive(id) {
       <tr style="background:#eef1f7;">
         <th style="padding:8px;text-align:left;">項目</th>
         <th style="padding:8px;text-align:right;">実績</th>
-        <th style="padding:8px;text-align:right;">目標</th>
+        <th style="padding:8px;text-align:right;">月間目標</th>
         <th style="padding:8px;text-align:right;">達成率</th>
       </tr>
     </thead><tbody>`;
   DEFAULT_CATEGORIES.forEach(c => {
-    detailHtml += `<tr style="background:${c.iconColor}22;"><td colspan="4" style="padding:6px 8px;font-weight:700;">${c.name}</td></tr>`;
+    const sectionTag = c.section === 'perf' ? '【業績】' : '【人事】';
+    detailHtml += `<tr style="background:${c.iconColor}22;"><td colspan="4" style="padding:6px 8px;font-weight:700;">${sectionTag} ${c.name}</td></tr>`;
     c.inputs.forEach(i => {
-      const v = ar.values[i.key] || 0;
+      const v = (ar.values && ar.values[i.key]) || 0;
       const tgt = (ar.targets && ar.targets[i.key] != null) ? ar.targets[i.key] : (DEFAULT_TARGETS[i.key] || 1);
-      const rate = Math.min(100, (v / tgt) * 100);
+      const pct = Math.min(100, (v / tgt) * 100);
       detailHtml += `<tr style="border-bottom:1px solid #eef1f7;">
         <td style="padding:6px 8px;">${i.label}</td>
         <td style="padding:6px 8px;text-align:right;font-weight:700;">${v}${i.unit}</td>
         <td style="padding:6px 8px;text-align:right;color:#95a5a6;">${tgt}${i.unit}</td>
-        <td style="padding:6px 8px;text-align:right;">${rate.toFixed(0)}%</td>
+        <td style="padding:6px 8px;text-align:right;">${pct.toFixed(0)}%</td>
       </tr>`;
     });
   });
@@ -1894,7 +1967,7 @@ function switchPage(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
   if (name === 'dashboard') renderDashboard();
-  if (name === 'account') renderInput();
+  if (name === 'input') renderInput();
   if (name === 'archive') renderArchive();
   if (name === 'settings') renderSettings();
 }
@@ -1904,10 +1977,7 @@ function saveAndSync() { pushRoom(); }
 function manualRefresh() { fetchRoom(); }
 function resetCurrentMonth() {
   if (!confirm('今月の入力値を 0 にリセットします。\n履歴と目標値は維持されます。よろしいですか？')) return;
-  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => {
-    state.values[i.key] = 0;
-    markEdited('values.' + i.key);
-  }));
+  DEFAULT_CATEGORIES.forEach(c => c.inputs.forEach(i => { state.values[i.key] = 0; }));
   saveLocal();
   renderAll();
   pushRoom();
@@ -1929,6 +1999,274 @@ function showToast(msg, type='') {
 }
 
 document.getElementById('accNameInput').addEventListener('input', e => onAccountNameChange(e.target.value));
+
+/* ==========================================================================
+   自動取得：共通ユーティリティ
+   ========================================================================== */
+function setAutoInfo(id, msg, cls) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'auto-panel-info' + (cls ? ' ' + cls : '');
+}
+
+/* CSV パース（RFC4180 簡易版・改行とダブルクォート対応） */
+function parseCsv(text) {
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else { inQ = false; }
+      } else { field += ch; }
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { row.push(field); field = ''; }
+      else if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else field += ch;
+    }
+  }
+  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+/* ==========================================================================
+   自動取得：スプレッドシート
+   ========================================================================== */
+async function fetchSheetCsv(sheetId, sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('シート取得失敗: ' + res.status);
+  return await res.text();
+}
+
+/* 「No.」列（先頭列が数字 or 「数字」）の有効行数をカウント */
+function countScriptRows(rows) {
+  if (!rows || rows.length < 2) return { total:0, template:0, headers:[] };
+  const headers = rows[0].map(h => (h||'').trim());
+  let total = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const first = (rows[i][0] || '').trim();
+    if (!first) continue;
+    // No.列が数字 or 数字を含むなら有効行
+    if (/\d/.test(first)) total++;
+  }
+  return { total, headers };
+}
+
+async function fetchScriptCount() {
+  const cfg = state.integration.sheet;
+  if (!cfg.id) { setAutoInfo('sheetInfo', '設定タブでシートIDを登録してください', 'err'); return; }
+  setAutoInfo('sheetInfo', '取得中...', 'work');
+  try {
+    const csv = await fetchSheetCsv(cfg.id, cfg.name);
+    const rows = parseCsv(csv);
+    const { total } = countScriptRows(rows);
+    const baseline = (state.baseline && state.baseline.script_count) || 0;
+    const thisMonth = Math.max(0, total - baseline);
+
+    /* 値を反映 */
+    state.values.script_count = thisMonth;
+    markEdited('values.script_count');
+    saveLocal(); debouncedPush();
+    renderAll();
+
+    const baseDate = (state.baseline && state.baseline.setAt) || '未設定';
+    setAutoInfo('sheetInfo', `現在合計${total}本 / 基準${baseline}本(${(baseDate||'').slice(0,10)}) → 今月${thisMonth}本`, 'ok');
+    showToast(`台本本数を自動取得しました：今月 ${thisMonth} 本`, 'success');
+  } catch (e) {
+    console.error(e);
+    setAutoInfo('sheetInfo', '取得失敗: ' + (e.message || e), 'err');
+    showToast('スプレッドシート取得に失敗。共有設定とシート名を確認してください', 'error');
+  }
+}
+
+async function setSheetBaseline() {
+  const cfg = state.integration.sheet;
+  if (!cfg.id) { setAutoInfo('sheetInfo', '設定タブでシートIDを登録してください', 'err'); return; }
+  if (!confirm('現在のスプレッドシート合計値を「今月の起点」として保存します。\n以降の自動取得は (現在合計 − この基準値) を今月の本数とします。よろしいですか？')) return;
+  setAutoInfo('sheetInfo', '基準値取得中...', 'work');
+  try {
+    const csv = await fetchSheetCsv(cfg.id, cfg.name);
+    const rows = parseCsv(csv);
+    const { total } = countScriptRows(rows);
+    state.baseline = {
+      script_count: total,
+      setAt: new Date().toISOString(),
+    };
+    markEdited('baseline');
+    saveLocal(); debouncedPush();
+    setAutoInfo('sheetInfo', `基準値を ${total} 本に設定（${state.baseline.setAt.slice(0,10)}）`, 'ok');
+    showToast('月初の基準値を更新しました', 'success');
+  } catch (e) {
+    console.error(e);
+    setAutoInfo('sheetInfo', '取得失敗: ' + (e.message || e), 'err');
+  }
+}
+
+/* ==========================================================================
+   自動取得：Instagram Graph API
+   投稿数: GET /{ig-user-id}/media?fields=id,timestamp&since=...&until=...
+   フォロワー: GET /{ig-user-id}?fields=followers_count
+   リール再生: GET /{ig-user-id}/media?fields=id,media_product_type,insights.metric(plays)
+   ========================================================================== */
+function monthRangeUnix() {
+  const now = new Date();
+  const since = Math.floor(new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000);
+  const until = Math.floor(now.getTime() / 1000);
+  return { since, until };
+}
+
+async function igGet(path, params) {
+  const cfg = state.integration.ig;
+  const token = (cfg.token || '').replace(/[\s\u200B\u200C\u200D\uFEFF]/g, '');
+  const qs = new URLSearchParams(Object.assign({}, params, { access_token: token })).toString();
+  const url = `https://graph.facebook.com/v22.0/${path}?${qs}`;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.error) {
+    const tokenLen = token.length;
+    const tokenPreview = tokenLen > 16 ? token.slice(0,10) + '...' + token.slice(-6) : token;
+    throw new Error(`IG API: ${data.error.message} [token: ${tokenLen}文字, ${tokenPreview}]`);
+  }
+  return data;
+}
+
+async function fetchInstagram() {
+  const cfg = state.integration.ig;
+  if (!cfg.token || !cfg.igUserId) {
+    setAutoInfo('igInfo', '設定タブで Graph APIトークンとIG User IDを登録してください', 'err');
+    setAutoInfo('insightInfo', '設定タブで Graph APIトークンとIG User IDを登録してください', 'err');
+    return;
+  }
+  setAutoInfo('igInfo', '取得中...', 'work');
+  setAutoInfo('insightInfo', '取得中...', 'work');
+  try {
+    const { since, until } = monthRangeUnix();
+    /* メディア一覧（今月分） */
+    let media = [];
+    let next = null;
+    let firstUrl = `${cfg.igUserId}/media`;
+    let params = { fields:'id,media_product_type,timestamp', since, until, limit: 100 };
+    let data = await igGet(firstUrl, params);
+    media = media.concat(data.data || []);
+    next = data.paging && data.paging.next;
+    /* 簡易ページング（最大3回） */
+    for (let i = 0; i < 3 && next; i++) {
+      const r = await fetch(next); const j = await r.json();
+      if (j.error) break;
+      media = media.concat(j.data || []);
+      next = j.paging && j.paging.next;
+    }
+    const posts = media.filter(m => m.media_product_type !== 'STORY').length;
+    const reels = media.filter(m => m.media_product_type === 'REELS');
+
+    /* フォロワー数 */
+    const profile = await igGet(cfg.igUserId, { fields: 'followers_count,media_count' });
+    const followers = profile.followers_count || 0;
+
+    /* リール再生数（plays合計） */
+    let totalPlays = 0;
+    for (const r of reels) {
+      try {
+        const insight = await igGet(`${r.id}/insights`, { metric: 'plays' });
+        const vals = insight.data && insight.data[0] && insight.data[0].values;
+        if (vals && vals[0]) totalPlays += (vals[0].value || 0);
+      } catch (e) { /* ignore individual reel insight error */ }
+    }
+
+    /* baseline: 月初フォロワー値 */
+    let followerGain = 0;
+    const baseline = cfg.baseline;
+    if (baseline && typeof baseline.follower === 'number') {
+      followerGain = Math.max(0, followers - baseline.follower);
+    } else {
+      /* baselineなしなら今のフォロワー数をbaselineとして保存 */
+      cfg.baseline = { follower: followers, setAt: new Date().toISOString() };
+      markEdited('integration.ig.baseline');
+    }
+
+    /* 反映 */
+    state.values.post_count = posts;
+    state.values.follower_gain = followerGain;
+    state.values.reel_plays = totalPlays;
+    state.values.daily_post_days = new Set(media.filter(m => m.media_product_type !== 'STORY').map(m => (m.timestamp||'').slice(0,10))).size;
+    ['post_count','follower_gain','reel_plays','daily_post_days'].forEach(k => markEdited('values.'+k));
+    saveLocal(); debouncedPush();
+    renderAll();
+
+    setAutoInfo('igInfo', `投稿${posts}本 / 投稿日数${state.values.daily_post_days}日`, 'ok');
+    setAutoInfo('insightInfo', `フォロワー純増${followerGain}人 / リール再生数${totalPlays.toLocaleString()}回`, 'ok');
+    showToast('Instagramデータを自動取得しました', 'success');
+  } catch (e) {
+    console.error(e);
+    setAutoInfo('igInfo', '取得失敗: ' + (e.message || e), 'err');
+    setAutoInfo('insightInfo', '取得失敗: ' + (e.message || e), 'err');
+    showToast('Instagram取得失敗。トークン期限切れの可能性あり', 'error');
+  }
+}
+
+/* ==========================================================================
+   自動取得：勤怠アプリ（汎用GET）
+   レスポンス例: {"days8h": 18}  → keyで参照する値を取得
+   ========================================================================== */
+async function fetchAttendance() {
+  const cfg = state.integration.attend;
+  if (!cfg.url) { setAutoInfo('attendInfo', '設定タブで勤怠APIのURLを登録してください', 'err'); return; }
+  setAutoInfo('attendInfo', '取得中...', 'work');
+  try {
+    const headers = {};
+    if (cfg.authHeader) {
+      /* "Header-Name: value" 形式を分割 */
+      const m = cfg.authHeader.match(/^([^:]+):\s*(.+)$/);
+      if (m) headers[m[1].trim()] = m[2].trim();
+    }
+    const res = await fetch(cfg.url, { headers });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const v = Number(data[cfg.key] != null ? data[cfg.key] : 0) || 0;
+    state.values.work8h_days = v;
+    markEdited('values.work8h_days');
+    saveLocal(); debouncedPush(); renderAll();
+    setAutoInfo('attendInfo', `8時間以上勤務 ${v} 日を反映`, 'ok');
+    showToast(`勤怠データを反映: ${v}日`, 'success');
+  } catch (e) {
+    console.error(e);
+    setAutoInfo('attendInfo', '取得失敗: ' + (e.message || e), 'err');
+    showToast('勤怠API取得失敗。URL/認証ヘッダ/レスポンスキーを確認', 'error');
+  }
+}
+
+/* 連携設定の入力ハンドラ */
+function onIntegrationChange(group, field, value) {
+  if (!state.integration[group]) state.integration[group] = {};
+  // トークンは前後の空白・改行・ゼロ幅文字を完全除去
+  if (field === 'token') {
+    value = value.replace(/[\s\u200B\u200C\u200D\uFEFF]/g, '');
+  }
+  state.integration[group][field] = value;
+  markEdited('integration.' + group + '.' + field);
+  saveLocal(); debouncedPush();
+}
+
+/* Instagram のフォロワー月初基準値を今の値で上書き */
+async function setIgBaseline() {
+  const cfg = state.integration.ig;
+  if (!cfg.token || !cfg.igUserId) { showToast('先にトークンとIG User IDを登録してください', 'error'); return; }
+  if (!confirm('今のフォロワー数を「月初の基準値」として保存します。よろしいですか？')) return;
+  try {
+    const profile = await igGet(cfg.igUserId, { fields: 'followers_count' });
+    cfg.baseline = { follower: profile.followers_count || 0, setAt: new Date().toISOString() };
+    markEdited('integration.ig.baseline');
+    saveLocal(); debouncedPush(); renderSettings();
+    showToast(`月初フォロワー基準: ${cfg.baseline.follower}人`, 'success');
+  } catch (e) {
+    showToast('取得失敗: ' + (e.message || e), 'error');
+  }
+}
 
 initSync();
 </script>
